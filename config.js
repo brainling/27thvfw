@@ -12,11 +12,19 @@ var store = new confidence.Store({
         production: {
             mongo: {
                 url: process.env.MONGO_URL
+            },
+            aws: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
             }
         },
         $default: {
             mongo: {
                 url: localConfig.mongoUrl
+            },
+            aws: {
+                accessKeyId: localConfig.awsAccessKeyId,
+                secretAccessKey: localConfig.awsSecretAccessKey
             }
         }
     }
