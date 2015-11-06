@@ -1,8 +1,9 @@
+var fs = require('fs');
 var confidence = require('confidence');
 
 var env = process.env.NODE_ENV;
 var localConfig = {};
-if(env !== 'production') {
+if(env !== 'production' && fs.existsSync('./config.local')) {
     localConfig = require('./config.local');
 }
 
