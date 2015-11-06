@@ -3,7 +3,7 @@ var confidence = require('confidence');
 
 var env = process.env.NODE_ENV;
 var localConfig = {};
-if(env !== 'production' && fs.existsSync('./config.local')) {
+if(env !== 'production' && fs.existsSync('./config.local.js')) {
     localConfig = require('./config.local');
 }
 
