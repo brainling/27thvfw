@@ -11,13 +11,20 @@ router.get('/', function(req, res) {
         }
 
         res.render('acmi/index', {
+            title: 'ACMI Log',
             acmis: acmis || []
         });
     });
 });
 
 router.get('/new', function(req, res) {
-    res.render('acmi/new');
+    res.render('acmi/new', {
+        title: 'ACMI Log'
+    });
+});
+
+router.post('/new', function(req, res) {
+    res.redirect('/acmi');
 });
 
 module.exports = router;
