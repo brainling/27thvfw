@@ -2,6 +2,7 @@
   "name": "27thvfw",
   "version": "0.0.0",
   "private": true,
+  "repository": "https://github.com/brainling/27thfvw",
   "scripts": {
     "start": "node ./bin/www"
   },
@@ -20,5 +21,10 @@
     "morgan": "~1.6.1",
     "node-sass-middleware": "0.8.0",
     "serve-favicon": "~2.3.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jshint": "^1.12.0",
+    "jshint-stylish": "^2.0.1"
   }
 }
