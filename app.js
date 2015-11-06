@@ -2,18 +2,14 @@
 
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
+//var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var config = require('./config').get('/db');
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-
 mongoose.connect(config.mongo.url);
-
 var app = express();
 
 // view engine setup
@@ -36,9 +32,8 @@ app.use(require('node-sass-middleware')({
 app.use('/fonts', express.static(path.join(__dirname, 'node_modules/bootstrap-sass/assets/fonts/bootstrap')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', routes);
+app.use('/', require('./routes/index'));
 app.use('/acmi', require('./routes/acmi'));
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
