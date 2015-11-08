@@ -9,7 +9,7 @@ RUN mkdir /app
 WORKDIR /app/
 
 COPY package.json package.json
-RUN npm install --dev
+RUN npm install
 
 COPY . /app/
 

@@ -16,9 +16,7 @@
     "debug": "~2.2.0",
     "hapi": "^11.1.0",
     "inert": "^3.2.0",
-    "mongoose": "^4.2.4"
-  },
-  "devDependencies": {
+    "mongoose": "^4.2.4",
     "bootstrap-sass": "^3.3.5",
     "bootswatch-sass": "^3.2.0",
     "angular": "^1.4.7",
