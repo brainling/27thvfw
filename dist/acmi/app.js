@@ -42155,8 +42155,8 @@ angular.module('27th.acmi.upload', []).controller('UploadAcmiController', (funct
 "use strict";
 
 angular.module("27th.templates", []).run(["$templateCache", function ($templateCache) {
-  $templateCache.put("./components/acmi/acmi.html", "<div><span class=\"glyphicon glyphicon-search\"></span></div>");
   $templateCache.put("./components/uploadAcmi/uploadAcmi.html", "<form><div class=\"form-group\"><label for=\"title\">Title</label><input id=\"title\" type=\"text\" name=\"title\" class=\"form-control\"/></div><div class=\"form-group\"><label for=\"details\">Details</label><textarea id=\"details\" name=\"details\" class=\"form-control\"></textarea></div><div class=\"form-group\"><label for=\"tags\">Tags</label><input id=\"tags\" type=\"text\" name=\"tags\" class=\"form-control\"/></div><button type=\"submit\" class=\"btn btn-success\">Save</button></form>");
+  $templateCache.put("./components/acmi/acmi.html", "<div><span class=\"glyphicon glyphicon-search\"></span></div>");
 }]);
 
 },{}]},{},[18]);
