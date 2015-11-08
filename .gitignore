@@ -33,6 +33,5 @@ node_modules
 # Local config that can caontain secrets
 config.local.js
 
-# Ignore cached CSS and maps
-*.css
+# Ignore maps
 *.map

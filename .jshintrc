@@ -7,5 +7,7 @@
     "immed": true,
     "indent": 4,
     "validthis": true,
-    "boss": true
+    "boss": true,
+    "esnext": true,
+    "predef": [ "angular" ]
 }
