@@ -1,6 +1,9 @@
 FROM node:5-slim
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN apt-get update -y
+RUN apt-get install git -y
+
 RUN npm install -g gulp
 RUN mkdir /app
 WORKDIR /app/
