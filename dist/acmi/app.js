@@ -42103,7 +42103,7 @@ require('angular-new-router');
 require('templates');
 
 require('./components/acmi/index');
-require('./components/uploadAcmi/index');
+require('./components/upload-acmi/index');
 
 angular.module('27th.acmi', ['ngNewRouter', '27th.templates', '27th.acmi.log', '27th.acmi.upload']).controller('AppController', (function () {
     function _class($router) {
@@ -42125,7 +42125,7 @@ angular.module('27th.acmi', ['ngNewRouter', '27th.templates', '27th.acmi.log', '
     return _class;
 })());
 
-},{"./components/acmi/index":19,"./components/uploadAcmi/index":20,"angular":3,"angular-new-router":1,"bootstrap":4,"jquery":17,"templates":"templates"}],19:[function(require,module,exports){
+},{"./components/acmi/index":19,"./components/upload-acmi/index":20,"angular":3,"angular-new-router":1,"bootstrap":4,"jquery":17,"templates":"templates"}],19:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -42155,8 +42155,9 @@ angular.module('27th.acmi.upload', []).controller('UploadAcmiController', (funct
 "use strict";
 
 angular.module("27th.templates", []).run(["$templateCache", function ($templateCache) {
-  $templateCache.put("./components/uploadAcmi/uploadAcmi.html", "<form><div class=\"form-group\"><label for=\"title\">Title</label><input id=\"title\" type=\"text\" name=\"title\" class=\"form-control\"/></div><div class=\"form-group\"><label for=\"details\">Details</label><textarea id=\"details\" name=\"details\" class=\"form-control\"></textarea></div><div class=\"form-group\"><label for=\"tags\">Tags</label><input id=\"tags\" type=\"text\" name=\"tags\" class=\"form-control\"/></div><button type=\"submit\" class=\"btn btn-success\">Save</button></form>");
   $templateCache.put("./components/acmi/acmi.html", "<div><span class=\"glyphicon glyphicon-search\"></span></div>");
+  $templateCache.put("./components/upload-acmi/upload-acmi.html", "<form><div class=\"form-group\"><label for=\"title\">Title</label><input id=\"title\" type=\"text\" name=\"title\" class=\"form-control\"/></div><div class=\"form-group\"><label for=\"details\">Details</label><textarea id=\"details\" name=\"details\" class=\"form-control\"></textarea></div><div class=\"form-group\"><label for=\"tags\">Tags</label><input id=\"tags\" type=\"text\" name=\"tags\" class=\"form-control\"/></div><button type=\"submit\" class=\"btn btn-success\">Save</button></form>");
+  $templateCache.put("./components/uploadAcmi/uploadAcmi.html", "<form><div class=\"form-group\"><label for=\"title\">Title</label><input id=\"title\" type=\"text\" name=\"title\" class=\"form-control\"/></div><div class=\"form-group\"><label for=\"details\">Details</label><textarea id=\"details\" name=\"details\" class=\"form-control\"></textarea></div><div class=\"form-group\"><label for=\"tags\">Tags</label><input id=\"tags\" type=\"text\" name=\"tags\" class=\"form-control\"/></div><button type=\"submit\" class=\"btn btn-success\">Save</button></form>");
 }]);
 
 },{}]},{},[18]);

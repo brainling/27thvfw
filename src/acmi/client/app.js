@@ -9,7 +9,7 @@ require('angular-new-router');
 require('templates');
 
 require('./components/acmi/index');
-require('./components/uploadAcmi/index');
+require('./components/upload-acmi/index');
 
 angular.module('27th.acmi', [
     'ngNewRouter',
