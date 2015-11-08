@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "repository": "https://github.com/brainling/27thfvw",
-  "enginse": {
+  "engines": {
     "node": ">=5.0.0",
     "npm": ">=3.3.0"
   },
