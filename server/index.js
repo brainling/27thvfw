@@ -2,7 +2,10 @@
 
 
 var hapi = require('hapi');
+
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise; // Use ES6 promises
+
 var config = require('../config').get('/');
 
 class Server {
@@ -24,6 +27,8 @@ class Server {
             mongoose.connect(config.db.mongo.url);
 
             self.server.route(require('./routes/acmi'));
+            self.server.route(require('./routes/pilots'));
+            self.server.route(require('./routes/tags'));
             self.server.route(require('./routes/client'));
 
             ready(self);

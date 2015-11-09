@@ -4,3 +4,9 @@ div(ng-controller='AcmiFilterController as vm')
         div.form-group
             label(for='title')
             input#title.form-control(type='text' placeholder='Title')
+        div.form-group
+            tags-input(ng-model='vm.tags' placeholder='Tags')
+                auto-complete(source='vm.loadTags($query)' min-length=1)
+        div.form-group
+            tags-input(ng-model='vm.pilots' placeholder='Pilots' add-from-autocomplete-only=true)
+                auto-complete(source="vm.loadPilots($query)" min-length=2)

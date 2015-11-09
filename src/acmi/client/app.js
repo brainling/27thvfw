@@ -6,9 +6,12 @@ require('bootstrap');
 
 require('angular');
 require('angular-new-router');
+require('ng-tags-input');
 require('templates');
 
 require('./services/acmi-service');
+require('./services/pilot-service');
+require('./services/tag-service');
 
 require('./components/acmi');
 require('./components/upload-acmi');

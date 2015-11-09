@@ -8,5 +8,10 @@ div(ng-controller='UploadAcmiController as vm')
             textarea#details.form-control(name='details')
         div.form-group
             label(for='tags') Tags
-            input#tags.form-control(type='text', name='tags')
+            tags-input#tags(ng-model='vm.tags' placeholder='Tags')
+                auto-complete(source='vm.loadTags($query)' min-length=1)
+        div.form-group
+            label(for='pilots') Pilots
+            tags-input#pilots(ng-model='vm.pilots' placeholder='Pilots' add-from-autocomplete-only=true)
+                auto-complete(source="vm.loadPilots($query)" min-length=2)
         button.btn.btn-success(type='submit') Save

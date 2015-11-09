@@ -1,8 +1,41 @@
 'use strict';
 
 var Acmi = require('../models/acmi');
+var Tag = require('../models/tag');
 var Joi = require('joi');
 var Boom = require('boom');
+
+function updateTagCache(tags) {
+    if(!tags || tags.length === 0) {
+        return;
+    }
+
+    tags.forEach(function(tag) {
+        Tag.findOne({ tag: tag.toLowerCase() }, function(err, cached) {
+            if(err) {
+                console.log(err);
+                return;
+            }
+
+            if(!cached) {
+                var newTag = new Tag({ tag: tag, rank: 1 });
+                newTag.save(function (err) {
+                    if(err) {
+                        console.log(err);
+                    }
+                });
+
+                return;
+            }
+
+            Tag.update({ tag: tag.toLowerCase() }, { rank: cached.rank + 1 }, function(err) {
+                if(err) {
+                    console.log(err);
+                }
+            });
+        });
+    });
+}
 
 module.exports = [
     {
