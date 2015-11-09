@@ -1,11 +1,12 @@
-form
-    div.form-group
-        label(for='title') Title
-        input#title.form-control(type='text', name='title')
-    div.form-group
-        label(for='details') Details
-        textarea#details.form-control(name='details')
-    div.form-group
-        label(for='tags') Tags
-        input#tags.form-control(type='text', name='tags')
-    button.btn.btn-success(type='submit') Save
+div(ng-controller='UploadAcmiController as vm')
+    form
+        div.form-group
+            label(for='title') Title
+            input#title.form-control(type='text', name='title')
+        div.form-group
+            label(for='details') Details
+            textarea#details.form-control(name='details')
+        div.form-group
+            label(for='tags') Tags
+            input#tags.form-control(type='text', name='tags')
+        button.btn.btn-success(type='submit') Save

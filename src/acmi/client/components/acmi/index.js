@@ -1,8 +1,15 @@
 'use strict';
 
-angular.module('27th.acmi.log', [])
+angular.module('27th.acmi.log', [
+    '27th.acmi.services.acmi'
+])
     .controller('AcmiController', class {
-        constructor() {
+        constructor(acmiService) {
+            var self = this;
 
+            this.acmis = [];
+            acmiService.get().then(function (acmis) {
+                self.acmis = acmis;
+            });
         }
     });

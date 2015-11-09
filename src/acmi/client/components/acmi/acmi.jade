@@ -1,2 +1,12 @@
-div
-    span.glyphicon.glyphicon-search
+div(ng-controller='AcmiController as vm')
+    table.table-striped
+        thead
+            tr
+                th(width='40%') Title
+                th(width='30%') Pilots
+                th(width='30%') Tags
+        tbody
+            tr(ng-repeat='acmi in vm.acmis')
+                td {{ acmi.title }}
+                td {{ acmi.pilots.join(', ') }}
+                td {{ acmi.tags.join(',') }}

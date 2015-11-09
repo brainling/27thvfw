@@ -1,0 +1,10 @@
+nav.navbar.navbar-inverse.navbar-fixed-top(ng-controller='TopnavController as vm')
+    div.container-fluid
+        div.navbar-header
+            button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar',
+            aria-expanded='false', aria-controls='navbar')
+            a.navbar-brand(ng-link='log') ACMI Log
+        div#navbar.navbar-collapse.collapse
+            ul.nav.navbar-nav
+                li
+                    a(ng-link='upload') Upload

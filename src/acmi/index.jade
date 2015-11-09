@@ -3,18 +3,11 @@ html
     head
         link(rel='stylesheet' href='acmi/app.css' type='text/css')
     body(ng-app='27th.acmi' ng-controller='AppController as app')
-        nav.navbar.navbar-inverse.navbar-fixed-top
-            div.container-fluid
-                div.navbar-header
-                    button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar',
-                    aria-expanded='false', aria-controls='navbar')
-                    a.navbar-brand(href='/acmi') ACMI Log
-                div#navbar.navbar-collapse.collapse
-                    ul.nav.navbar-nav
-
+        div(ng-viewport='topnav')
         div.container-fluid
             div.row
                 div.col-sm-3.col-md-2.sidebar
+                    div(ng-viewport='sidebar')
                 div.col-sm-9.col-sm-offset-3.col-md-10.col-md-offset-2.main
                     div(ng-viewport)
 

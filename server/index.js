@@ -1,6 +1,10 @@
 'use strict';
 
+
 var hapi = require('hapi');
+var mongoose = require('mongoose');
+var config = require('../config').get('/');
+
 class Server {
     constructor(ready) {
         this.server = new hapi.Server({debug: {request: ['error']}});
@@ -17,6 +21,9 @@ class Server {
                 throw err;
             }
 
+            mongoose.connect(config.db.mongo.url);
+
+            self.server.route(require('./routes/acmi'));
             self.server.route(require('./routes/client'));
 
             ready(self);

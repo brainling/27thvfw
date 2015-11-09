@@ -8,14 +8,22 @@ require('angular');
 require('angular-new-router');
 require('templates');
 
-require('./components/acmi/index');
-require('./components/upload-acmi/index');
+require('./services/acmi-service');
+
+require('./components/acmi');
+require('./components/upload-acmi');
+require('./components/acmi-filter');
+require('./components/empty-sidebar');
+require('./components/topnav');
 
 angular.module('27th.acmi', [
     'ngNewRouter',
     '27th.templates',
     '27th.acmi.log',
-    '27th.acmi.upload'
+    '27th.acmi.upload',
+    '27th.acmi.filter',
+    '27th.acmi.emptySidebar',
+    '27th.acmi.topnav'
 ])
     .controller('AppController', class {
         constructor($router) {
@@ -23,14 +31,20 @@ angular.module('27th.acmi', [
                 {
                     path: '/',
                     components: {
+                        'topnav': 'topnav',
+                        'sidebar': 'acmiFilter',
                         'default': 'acmi'
-                    }
+                    },
+                    as: 'log'
                 },
                 {
                     path: '/upload',
                     components: {
+                        'topnav': 'topnav',
+                        'sidebar': 'emptySidebar',
                         'default': 'uploadAcmi'
-                    }
+                    },
+                    as: 'upload'
                 }
             ]);
         }
