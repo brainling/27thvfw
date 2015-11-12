@@ -10,6 +10,11 @@ var sass = require('gulp-sass');
 var jade = require('gulp-jade');
 var templateCache = require('gulp-angular-templatecache');
 var merge = require('merge-stream');
+var ngAnnotate = require('gulp-ng-annotate');
+var uglify = require('gulp-uglify');
+
+var argv = require('yargs').argv;
+var gif = require('gulp-if');
 
 gulp.task('build:acmi:lint', function() {
     return gulp.src([ 'Gulpfile.js', 'config.js', 'server/**/*.js', 'src/client/**/*.js' ])
@@ -52,6 +57,8 @@ gulp.task('build:acmi:browserify', [ 'build:acmi:lint', 'build:acmi:angular' ], 
         .bundle()
         .pipe(source('app.js'))
         .pipe(buffer())
+        .pipe(gif(argv.production, ngAnnotate()))
+        .pipe(gif(argv.production, uglify()))
         .pipe(gulp.dest('dist/acmi'));
 });
 
