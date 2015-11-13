@@ -1,19 +1,23 @@
 'use strict';
 
+let _ = require('lodash');
+let base = require('./fetch-service-base');
+
 angular.module('27th.acmi.services.acmi', [])
-    .service('acmiService', class {
+    .service('acmiService', class extends base {
         constructor($http, $q) {
-            this.$http = $http;
-            this.$q = $q;
+            super($http, $q);
         }
 
-        get() {
-            var deferred = this.$q.defer();
-            this.$http.get('/api/acmi').then(function(response) {
-                deferred.resolve(response.data);
-            }, function(err) {
-                deferred.reject(err);
-            });
-            return deferred.promise;
+        get(params) {
+            return this.getAsync('/api/acmi', params || {});
+        }
+
+        count(params) {
+            return this.getAsync('/api/acmi', _.merge({ count: true }, params) || { count: true });
+        }
+
+        upload(acmi) {
+            return this.postAsync('/api/acmi', acmi);
         }
     });

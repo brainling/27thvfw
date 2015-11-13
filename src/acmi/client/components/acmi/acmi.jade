@@ -1,5 +1,5 @@
 div(ng-controller='AcmiController as vm')
-    table.table-striped
+    table.table.table-striped
         thead
             tr
                 th(width='40%') Title
@@ -10,3 +10,8 @@ div(ng-controller='AcmiController as vm')
                 td {{ acmi.title }}
                 td {{ acmi.pilots.join(', ') }}
                 td {{ acmi.tags.join(',') }}
+
+    nav
+        uib-pagination(ng-model='vm.currentPage' total-items='vm.totalAcmis' max-size=5 boundary-links='true'
+            previous-text!='&lsaquo;' next-text!='&rsaquo;' first-text!='&laquo;' last-text!='&raquo;'
+            items-per-page='vm.pageSize' ng-change='vm.pageChanged()')

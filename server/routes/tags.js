@@ -12,15 +12,16 @@ module.exports = [
         config: {
             validate: {
                 query: {
-                    query: Joi.string().max(25)
+                    query: Joi.string().max(25).allow(''),
+                    top: Joi.number().min(3).max(25).default(5)
                 }
             }
         },
         handler: function (request, reply) {
             var query = Tag.find()
-                .limit(5);
+                .limit(request.query.top);
 
-            if (request.query.query) {
+            if (request.query.query && request.query.query.length > 0) {
                 query.where('tag', new RegExp('^' + request.query.query, 'i'));
             }
 

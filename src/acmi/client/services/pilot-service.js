@@ -1,21 +1,16 @@
 'use strict';
 
+var base = require('./fetch-service-base');
 angular.module('27th.acmi.services.pilot', [])
-    .service('pilotService', class {
+    .service('pilotService', class extends base {
         constructor($http, $q) {
-            this.$http = $http;
-            this.$q = $q;
+            super($http, $q);
         }
 
         get(query) {
-            var deferred = this.$q.defer();
-
-            var url = '/api/pilots/auto-complete' + (query ? '?query=' + query.trim() : '');
-            this.$http.get(url).then(function(response) {
-                deferred.resolve(response.data);
-            }, function(err) {
-                deferred.reject(err);
+            query = query || '';
+            return this.getAsync('/api/pilots/auto-complete', {
+                query: query.trim()
             });
-            return deferred.promise;
         }
     });

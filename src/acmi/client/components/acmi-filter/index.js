@@ -1,16 +1,39 @@
 'use strict';
 
+let _ = require('lodash');
+
 angular.module('27th.acmi.filter', [
     'ngTagsInput',
     '27th.acmi.services.pilot',
     '27th.acmi.services.tag'
 ])
     .controller('AcmiFilterController', class {
-        constructor(pilotService, tagService) {
+        constructor($rootScope, pilotService, tagService) {
+            let self = this;
+
+            this.$rootScope = $rootScope;
             this.pilotService = pilotService;
             this.tagService = tagService;
+            this.title = '';
             this.tags = [];
             this.pilots = [];
+            this.popularTags = [];
+
+            this.debouncedApply = _.debounce(function () {
+                self.applyFilters();
+            }, 500);
+
+            tagService.get(null, 10).then(function(tags) {
+                self.popularTags = tags;
+            });
+        }
+
+        applyFilters() {
+            this.$rootScope.$emit('acmi.filterChanged', {
+                title: this.title,
+                tags: _.map(this.tags, t => t.text),
+                pilots: _.map(this.pilots, p => p.text)
+            });
         }
 
         loadPilots(query) {

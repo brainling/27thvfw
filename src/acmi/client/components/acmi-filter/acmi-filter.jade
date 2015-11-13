@@ -3,10 +3,18 @@ div(ng-controller='AcmiFilterController as vm')
     form
         div.form-group
             label(for='title')
-            input#title.form-control(type='text' placeholder='Title')
+            input#title.form-control(type='text' placeholder='Title' ng-model='vm.title'
+            ng-change='vm.debouncedApply()')
         div.form-group
-            tags-input(ng-model='vm.tags' placeholder='Tags')
+            tags-input(ng-model='vm.tags' placeholder='Tags' on-tag-added='vm.applyFilters()'
+                on-tag-removed='vm.applyFilters()')
                 auto-complete(source='vm.loadTags($query)' min-length=1)
         div.form-group
-            tags-input(ng-model='vm.pilots' placeholder='Pilots' add-from-autocomplete-only=true)
+            tags-input(ng-model='vm.pilots' placeholder='Pilots' add-from-autocomplete-only='true'
+                on-tag-added='vm.applyFilters()' on-tag-removed='vm.applyFilters()')
                 auto-complete(source="vm.loadPilots($query)" min-length=2)
+
+    div.well
+        h5 Popular Tags
+        span
+            | {{ vm.popularTags.join(', ') }}

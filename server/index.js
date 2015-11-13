@@ -8,6 +8,12 @@ mongoose.Promise = global.Promise; // Use ES6 promises
 
 var config = require('../config').get('/');
 
+if(!RegExp.escapeString) {
+    RegExp.escapeString = function (str) {
+        return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    };
+}
+
 class Server {
     constructor(ready) {
         this.server = new hapi.Server({debug: {request: ['error']}});
@@ -34,7 +40,6 @@ class Server {
             ready(self);
         });
     }
-
 
     start() {
         this.server.start(function () {

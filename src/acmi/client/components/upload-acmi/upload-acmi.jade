@@ -2,16 +2,16 @@ div(ng-controller='UploadAcmiController as vm')
     form
         div.form-group
             label(for='title') Title
-            input#title.form-control(type='text', name='title')
+            input#title.form-control(type='text' name='title' ng-model='vm.acmi.title')
         div.form-group
             label(for='details') Details
-            textarea#details.form-control(name='details')
+            textarea#details.form-control(name='details' ng-model='vm.acmi.details')
         div.form-group
             label(for='tags') Tags
-            tags-input#tags(ng-model='vm.tags' placeholder='Tags')
+            tags-input#tags(ng-model='vm.acmi.tags' placeholder='Tags')
                 auto-complete(source='vm.loadTags($query)' min-length=1)
         div.form-group
             label(for='pilots') Pilots
-            tags-input#pilots(ng-model='vm.pilots' placeholder='Pilots' add-from-autocomplete-only=true)
+            tags-input#pilots(ng-model='vm.acmi.pilots' placeholder='Pilots' add-from-autocomplete-only=true)
                 auto-complete(source="vm.loadPilots($query)" min-length=2)
-        button.btn.btn-success(type='submit') Save
+        button.btn.btn-success(type='submit' ng-click='vm.uploadAcmi()') Upload
