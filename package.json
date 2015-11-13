@@ -8,9 +8,10 @@
     "npm": ">=3.3.0"
   },
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/queue-processor & node ./bin/www"
   },
   "dependencies": {
+    "amqp": "^0.2.4",
     "boom": "^3.0.0",
     "bootstrap": "^3.3.5",
     "confidence": "^1.4.2",

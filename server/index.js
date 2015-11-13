@@ -6,7 +6,7 @@ var hapi = require('hapi');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise; // Use ES6 promises
 
-var config = require('../config').get('/');
+var config = require('../config').get('/db');
 
 if(!RegExp.escapeString) {
     RegExp.escapeString = function (str) {
@@ -24,13 +24,14 @@ class Server {
 
         var self = this;
         this.server.register([
-            require('inert')
+            require('inert'),
+            require('./plugins/queues')
         ], function(err) {
             if(err) {
                 throw err;
             }
 
-            mongoose.connect(config.db.mongo.url);
+            mongoose.connect(config.mongo.url);
 
             self.server.route(require('./routes/acmi'));
             self.server.route(require('./routes/pilots'));
@@ -43,7 +44,7 @@ class Server {
 
     start() {
         this.server.start(function () {
-            console.log('Backend server started');
+            console.log('Web server started');
         });
     }
 }
