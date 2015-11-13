@@ -5,11 +5,12 @@ var Tag = require('../models/tag');
 var Joi = require('joi');
 var Boom = require('boom');
 
-function updateTagCache(tags) {
+function updateTagCache(tags, cb) {
     if (!tags || tags.length === 0) {
         return;
     }
 
+    cb = cb || function() {};
     tags.forEach(function (tag) {
         Tag.findOne({tag: tag.toLowerCase()}, function (err, cached) {
             if (err) {
@@ -32,6 +33,8 @@ function updateTagCache(tags) {
                 if (err) {
                     console.log(err);
                 }
+
+                cb();
             });
         });
     });
@@ -113,7 +116,9 @@ module.exports = [
                     return reply(Boom.badImplementation(err));
                 }
 
-                return reply();
+                updateTagCache(acmi.tags, function() {
+                    return reply();
+                });
             });
         }
     }
