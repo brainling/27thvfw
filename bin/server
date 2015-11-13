@@ -8,6 +8,7 @@ let amqp = require('amqp');
 let config = require('../config').get('/queues');
 
 if(cluster.isMaster) {
+    console.log('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
     cluster.fork(_.merge({
         task: 'queue-processor'
     }, process.env));
