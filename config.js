@@ -5,7 +5,7 @@ var confidence = require('confidence');
 
 var env = process.env.NODE_ENV;
 var localConfig = {};
-if(env !== 'production' && fs.existsSync('./config.local.js')) {
+if(env !== 'production' && fs.existsSync('config.local.js')) {
     localConfig = require('./config.local');
 }
 
@@ -24,10 +24,6 @@ var store = new confidence.Store({
         $default: {
             mongo: {
                 url: localConfig.mongoUrl
-            },
-            aws: {
-                accessKeyId: localConfig.awsAccessKeyId,
-                secretAccessKey: localConfig.awsSecretAccessKey
             }
         }
     },

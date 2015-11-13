@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+'use strict';
+
+let cluster = require('cluster');
+let path = require('path');
+let _ = require('lodash');
+let amqp = require('amqp');
+let config = require('../config').get('/queues');
+
+if(cluster.isMaster) {
+    cluster.fork(_.merge({
+        task: 'queue-processor'
+    }, process.env));
+    cluster.fork(_.merge({
+        task: 'www'
+    }, process.env));
+}
+else {
+    var task = process.env.task || 'www';
+    require('./' + task);
+}

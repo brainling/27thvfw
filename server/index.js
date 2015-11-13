@@ -44,7 +44,7 @@ class Server {
 
     start() {
         this.server.start(function () {
-            console.log('Web server started');
+            console.log('Web server started (' + process.env.NODE_ENV + ')');
         });
     }
 }

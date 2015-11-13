@@ -8,7 +8,7 @@
     "npm": ">=3.3.0"
   },
   "scripts": {
-    "start": "node ./bin/queue-processor & node ./bin/www"
+    "start": "node ./bin/server"
   },
   "dependencies": {
     "amqp": "^0.2.4",
