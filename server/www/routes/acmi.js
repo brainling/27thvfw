@@ -1,7 +1,6 @@
 'use strict';
 
 var Acmi = require('../../common/models/acmi');
-var Tag = require('../../common/models/tag');
 var Joi = require('joi');
 var Boom = require('boom');
 
@@ -81,8 +80,9 @@ module.exports = [
                     return reply(Boom.badImplementation(err));
                 }
 
-                reply.publishTagUpdates(acmi.tags);
-                reply();
+                reply.publishTagUpdates(acmi.tags, () => {
+                    reply();
+                });
             });
         }
     }

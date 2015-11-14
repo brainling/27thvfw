@@ -54,6 +54,15 @@ var store = new confidence.Store({
                 url: localConfig.rabbitUrl
             }
         }
+    },
+    logging: {
+        $filter: 'env',
+        production: {
+            debug: false
+        },
+        $default: {
+            debug: true
+        }
     }
 });
 

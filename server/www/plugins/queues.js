@@ -11,12 +11,14 @@ exports.register = function(server, options, next) {
     connection.on('ready', function () {
         const exchange = connection.exchange('tag.updates', {
             durable: true,
-            autoDelete: false
+            autoDelete: false,
+            confirm: true
         });
 
         exchange.on('open', function () {
-            server.decorate('reply', 'publishTagUpdates', function (tags) {
-                exchange.publish(tags);
+            server.decorate('reply', 'publishTagUpdates', function (tags, done) {
+                exchange.publish('', tags);
+                done();
             });
 
             next();

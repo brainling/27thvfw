@@ -2,38 +2,52 @@
 'use strict';
 
 let cluster = require('cluster');
-let path = require('path');
+let winston = require('winston');
 let _ = require('lodash');
 let amqp = require('amqp');
-let config = require('../config').get('/queues');
+let config = require('../config').get('/logging');
+
+winston.level = config.debug ? 'debug' : 'info';
+
+const tasks = [
+    'queue-processor',
+    'www'
+];
 
 if(cluster.isMaster) {
-    console.log('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
-    cluster.fork({
-        task: 'queue-processor'
-    });
-    cluster.fork({
-        task: 'www'
-    });
+    let childTasks = {};
+
+    winston.info('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
+    for(let task of tasks) {
+        let worker = cluster.fork({
+           task: task
+        });
+
+        worker.on('message', function(msg) {
+            winston.debug('Worker %s registered for %s', msg.id, msg.task);
+            childTasks[msg.id] = msg.task;
+        });
+    }
 
     cluster.on('exit', (worker, code, signal) => {
         if(!worker.suicide) {
-            console.log('worker (%s) died (reason: %s), , restarting...',
-                worker.process.env['task'] || 'www',
-                signal || code);
-
+            let task = childTasks[worker.id] || 'www';
+            winston.warn('worker (%s) died (reason: %s), , restarting...', task, signal || code);
             cluster.fork({
-                task: worker.process.env['task'] || 'www'
+                task: task || 'www'
             });
         }
     });
 }
 else {
-    var task = process.env.task || 'www';
+    let task = process.env.task || 'www';
     try {
-        require('../server/' + task)();
+        cluster.worker.send({ id: cluster.worker.id, task: task }, function() {
+            require('../server/' + task)();
+        });
     }
     catch(err) {
-        console.log('Uncaught exception (task: %s): %s', task, err);
+        winston.error('Uncaught exception (task: %s): %s', task, err);
+        throw err;
     }
 }

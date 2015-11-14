@@ -2,11 +2,13 @@
 
 
 var hapi = require('hapi');
+var winston = require('winston');
+var config = require('../../config').get('/');
 
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise; // Use ES6 promises
 
-var config = require('../../config').get('/db');
+winston.level = config.logging.debug ? 'debug' : 'info';
 
 if(!RegExp.escapeString) {
     RegExp.escapeString = function (str) {
@@ -31,7 +33,7 @@ class Server {
                 throw err;
             }
 
-            mongoose.connect(config.mongo.url);
+            mongoose.connect(config.db.mongo.url);
 
             self.server.route(require('./routes/acmi'));
             self.server.route(require('./routes/pilots'));
@@ -44,7 +46,7 @@ class Server {
 
     start() {
         this.server.start(function () {
-            console.log('Web server started (' + (process.env.NODE_ENV || 'dev') + ')');
+            winston.info('Web server started (' + (process.env.NODE_ENV || 'dev') + ')');
         });
     }
 }
