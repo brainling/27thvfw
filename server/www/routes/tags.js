@@ -1,6 +1,6 @@
 'use strict';
 
-var Tag = require('../models/tag');
+var Tag = require('../../common/models/tag');
 var Joi = require('joi');
 var Boom = require('boom');
 var _ = require('lodash');

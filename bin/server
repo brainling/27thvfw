@@ -9,14 +9,31 @@ let config = require('../config').get('/queues');
 
 if(cluster.isMaster) {
     console.log('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
-    cluster.fork(_.merge({
+    cluster.fork({
         task: 'queue-processor'
-    }, process.env));
-    cluster.fork(_.merge({
+    });
+    cluster.fork({
         task: 'www'
-    }, process.env));
+    });
+
+    cluster.on('exit', (worker, code, signal) => {
+        if(!worker.suicide) {
+            console.log('worker (%s) died (reason: %s), , restarting...',
+                worker.process.env['task'] || 'www',
+                signal || code);
+
+            cluster.fork({
+                task: worker.process.env['task'] || 'www'
+            });
+        }
+    });
 }
 else {
     var task = process.env.task || 'www';
-    require('./' + task);
+    try {
+        require('../server/' + task)();
+    }
+    catch(err) {
+        console.log('Uncaught exception (task: %s): %s', task, err);
+    }
 }

@@ -1,7 +1,7 @@
 'use strict';
 
 let amqp = require('amqp');
-let config = require('../../config').get('/queues');
+let config = require('../../../config').get('/queues');
 
 exports.register = function(server, options, next) {
     const connection = amqp.createConnection({

@@ -1,6 +1,6 @@
 'use strict';
 
-var Pilot = require('../models/pilot');
+var Pilot = require('../../common/models/pilot');
 var Joi = require('joi');
 var Boom = require('boom');
 var _ = require('lodash');

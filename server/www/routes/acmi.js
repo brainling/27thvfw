@@ -1,44 +1,9 @@
 'use strict';
 
-var Acmi = require('../models/acmi');
-var Tag = require('../models/tag');
+var Acmi = require('../../common/models/acmi');
+var Tag = require('../../common/models/tag');
 var Joi = require('joi');
 var Boom = require('boom');
-
-function updateTagCache(tags, cb) {
-    if (!tags || tags.length === 0) {
-        return;
-    }
-
-    cb = cb || function() {};
-    tags.forEach(function (tag) {
-        Tag.findOne({tag: tag.toLowerCase()}, function (err, cached) {
-            if (err) {
-                console.log(err);
-                return;
-            }
-
-            if (!cached) {
-                var newTag = new Tag({tag: tag, rank: 1});
-                newTag.save(function (err) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-
-                return;
-            }
-
-            Tag.update({tag: tag.toLowerCase()}, {rank: cached.rank + 1}, function (err) {
-                if (err) {
-                    console.log(err);
-                }
-
-                cb();
-            });
-        });
-    });
-}
 
 module.exports = [
     {
@@ -116,9 +81,8 @@ module.exports = [
                     return reply(Boom.badImplementation(err));
                 }
 
-                updateTagCache(acmi.tags, function() {
-                    return reply();
-                });
+                reply.publishTagUpdates(acmi.tags);
+                reply();
             });
         }
     }
