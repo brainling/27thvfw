@@ -2,6 +2,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const Promise = require('bluebird');
 const amqp = require('amqp');
 const config = require('../../config').get('/');
 const Tag = require('../common/models/tag');

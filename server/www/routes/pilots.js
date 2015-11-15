@@ -21,13 +21,13 @@ module.exports = [
                 .limit(5);
 
             if (request.query.query) {
-                query.where('name', new RegExp('^' + request.query.query + '', 'i'));
+                query.where('callsign', new RegExp('^' + request.query.query + '', 'i'));
             }
 
             query.exec()
                 .then(pilots => {
                     reply(_.map(pilots, pilot => {
-                        return pilot.name;
+                        return pilot.callsign;
                     }));
                 })
                 .catch(err => {

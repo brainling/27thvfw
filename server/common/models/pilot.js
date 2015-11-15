@@ -5,7 +5,8 @@ const Joi = require('joi');
 const Joigoose = require('joigoose')(mongoose);
 
 let schema = Joi.object({
-    name: Joi.string().required().min(3).max(128).meta({ index: true }),
+    name: Joi.string().max(128).allow('').meta({ index: true }),
+    callsign: Joi.string().required().min(3).max(128).meta({ index: true }),
     pilotId: Joi.string().meta({ index: true })
 });
 

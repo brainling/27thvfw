@@ -9,5 +9,9 @@
     "validthis": true,
     "boss": true,
     "esnext": true,
-    "predef": [ "angular" ]
+    "shadow": true,
+    "globals": {
+        "Promise": true,
+        "angular": true
+    }
 }

@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+'use strict';
+
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
+const path = require('path');
+const mongoose = require('mongoose');
+const config = require('../config').get('/db');
+
+mongoose.connect(config.mongo.url);
+
+let seedDir = path.join(__dirname, '../seeds');
+fs.readdirAsync(seedDir)
+    .then(files => {
+        let tasks = [];
+        for(let file of files) {
+            tasks.push(seedData(file));
+        }
+
+        return Promise.all(tasks);
+    })
+    .then(() => {
+        console.log('Seeding complete');
+        process.exit(0);
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+function seedData(file) {
+    return new Promise((resolve, reject) => {
+        fs.readFileAsync(path.join(seedDir, file))
+            .then(json => {
+                let seed = JSON.parse(json);
+                let filter = seed.filter;
+                let data = seed.data;
+
+                let modelName = path.basename(file, '.json');
+                if(modelName.endsWith('s')) {
+                    modelName = modelName.slice(0, -1);
+                }
+
+                let model = require(path.join(__dirname, '../server/common/models/' + modelName));
+                console.log('Loaded model: ' + modelName);
+
+                var loads = [];
+                for(var item of data) {
+                    const dataItem = item;
+                    var load = model.findOne()
+                        .where(filter, dataItem[filter])
+                        .then(cached => {
+                            return findOrCreateItem(model, cached, dataItem);
+                        });
+                    loads.push(load);
+                }
+
+                return Promise.all(loads);
+            })
+            .then(() => {
+                console.log('Done seeding ' + file);
+                resolve();
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+}
+
+function findOrCreateItem(model, cached, item) {
+    return new Promise((resolve, reject) => {
+        if(!cached) {
+            model.create(item)
+                .then(resolve, reject);
+        }
+        else {
+            resolve();
+        }
+    });
+}

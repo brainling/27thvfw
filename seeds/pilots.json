@@ -1,0 +1,70 @@
+{
+  "filter": "callsign",
+  "data": [
+    {
+      "name": "",
+      "callsign": "Lawndart",
+      "pilotId": "A1000"
+    },
+    {
+      "name": "",
+      "callsign": "Wood",
+      "pilotId": "A1001"
+    },
+    {
+      "name": "",
+      "callsign": "Zordon",
+      "pilotId": "A1004"
+    },
+    {
+      "name": "",
+      "callsign": "DarkFib3r",
+      "pilotId": "A1005"
+    },
+    {
+      "name": "",
+      "callsign": "Lookoutt",
+      "pilotId": "A1006"
+    },
+    {
+      "name": "",
+      "callsign": "Spoiler",
+      "pilotId": "A1007"
+    },
+    {
+      "name": "",
+      "callsign": "Kutterro",
+      "pilotId": "A1008"
+    },
+    {
+      "name": "",
+      "callsign": "Boone",
+      "pilotId": "A1009"
+    },
+    {
+      "name": "",
+      "callsign": "Kamikaze",
+      "pilotId": "A1010"
+    },
+    {
+      "name": "",
+      "callsign": "Count Sodoku",
+      "pilotId": "A1012"
+    },
+    {
+      "name": "",
+      "callsign": "Caret",
+      "pilotId": "A1013"
+    },
+    {
+      "name": "",
+      "callsign": "Lasik",
+      "pilotId": "A1019"
+    },
+    {
+      "name": "",
+      "callsign": "Brainling",
+      "pilotId": "A1021"
+    }
+  ]
+}

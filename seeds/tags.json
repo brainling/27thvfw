@@ -1,0 +1,41 @@
+{
+  "filter": "tag",
+  "data": [
+    {
+      "tag": "wvr",
+      "rank": 1
+    },
+    {
+      "tag": "bvr",
+      "rank": 1
+    },
+    {
+      "tag": "dead",
+      "rank": 1
+    },
+    {
+      "tag": "sead",
+      "rank": 1
+    },
+    {
+      "tag": "sweep",
+      "rank": 1
+    },
+    {
+      "tag": "oca",
+      "rank": 1
+    },
+    {
+      "tag": "intercept",
+      "rank": 1
+    },
+    {
+      "tag": "success",
+      "rank": 1
+    },
+    {
+      "tag": "failure",
+      "rank": 1
+    }
+  ]
+}
