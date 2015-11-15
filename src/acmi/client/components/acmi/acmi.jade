@@ -1,17 +1,27 @@
-div(ng-controller='AcmiController as vm')
-    table.table.table-striped
-        thead
-            tr
-                th(width='40%') Title
-                th(width='30%') Pilots
-                th(width='30%') Tags
-        tbody
-            tr(ng-repeat='acmi in vm.acmis')
-                td {{ acmi.title }}
-                td {{ acmi.pilots.join(', ') }}
-                td {{ acmi.tags.join(',') }}
-
-    nav
-        uib-pagination(ng-model='vm.currentPage' total-items='vm.totalAcmis' max-size=5 boundary-links='true'
-            previous-text!='&lsaquo;' next-text!='&rsaquo;' first-text!='&laquo;' last-text!='&raquo;'
-            items-per-page='vm.pageSize' ng-change='vm.pageChanged()')
+div(ng-controller='AcmiController as vm').acmi-details
+    div.panel.panel-default(ng-repeat='acmi in vm.acmis')
+        div.panel-heading
+            span.acmi-header {{ acmi.title }}
+            a.pull-right(href='https://27thvfw.s3.amazonaws.com/acmis/{{ acmi.files[0].key }}/{{ acmi.files[0].file }}'
+                download=true)
+                i.glyphicon.glyphicon-download
+        div.panel-body
+            div.container-fluid
+                div.row
+                    div.col-sm-8
+                        h5 Details
+                        i {{ acmi.details | words: 30 }}
+                    div.col-sm-4
+                        h5 Pilots
+                        | {{ acmi.pilots.join(', ') }}
+                div.row.detail-row
+                    div.col-sm-8
+                        span.tag-header Tags
+                        span.tag-list {{ acmi.tags.join(', ') }}
+                    div.col-sm-4
+                        span.uploaded-header Uploaded
+                        span.uploaded-date {{ acmi.uploadedAt | date: 'MMM d, y h:mm a' }}
+nav
+    uib-pagination(ng-model='vm.currentPage' total-items='vm.totalAcmis' max-size=5 boundary-links='true'
+        previous-text!='&lsaquo;' next-text!='&rsaquo;' first-text!='&laquo;' last-text!='&raquo;'
+        items-per-page='vm.pageSize' ng-change='vm.pageChanged()')

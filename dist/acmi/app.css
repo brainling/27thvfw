@@ -6135,7 +6135,7 @@ body {
 .nav-sidebar > .active > a:hover,
 .nav-sidebar > .active > a:focus {
   color: #fff;
-  background-color: #428bca; }
+  background-color: #f5f5f5; }
 
 .main {
   padding: 20px; }
@@ -6147,3 +6147,35 @@ body {
 
 .main .page-header {
   margin-top: 0; }
+
+.acmi-header {
+  font-weight: bold;
+  color: #317EAC; }
+
+.acmi-details .panel-body {
+  padding: 11px; }
+
+.detail-row {
+  border-top: 1px solid #ddd;
+  margin-top: 15px;
+  padding-top: 3px; }
+
+.uploaded-header {
+  margin-right: 10px;
+  font-size: 12px;
+  color: #317EAC; }
+
+.uploaded-date {
+  font-size: 12px;
+  font-style: italic;
+  color: #555555; }
+
+.tag-header {
+  margin-right: 10px;
+  font-size: 12px;
+  color: #317EAC; }
+
+.tag-list {
+  font-size: 12px;
+  font-style: italic;
+  color: #555555; }

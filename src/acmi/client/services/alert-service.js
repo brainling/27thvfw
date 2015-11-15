@@ -9,12 +9,12 @@ angular.module('27th.acmi.services.alert', [])
 
         success(msg) {
             this.alerts.push({ type: 'success', message: msg });
-            this.$rootScope.$emit('alerts.new')
+            this.$rootScope.$emit('alerts.new');
         }
 
         error(msg) {
             this.alerts.push({ type: 'error', message: msg });
-            this.$rootScope.$emit('alerts.new')
+            this.$rootScope.$emit('alerts.new');
         }
 
         nextAlert() {

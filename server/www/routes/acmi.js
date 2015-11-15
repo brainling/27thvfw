@@ -1,8 +1,35 @@
 'use strict';
 
-var Acmi = require('../../common/models/acmi');
-var Joi = require('joi');
-var Boom = require('boom');
+const crypto = require('crypto');
+const Acmi = require('../../common/models/acmi');
+const Joi = require('joi');
+const Boom = require('boom');
+const config = require('../../../config').get('/storage');
+
+function acmiQuery(request, count) {
+    let query = Acmi.find()
+        .sort('-uploadedAt');
+
+    if (!count) {
+        query = query.limit(request.query.pageSize)
+            .skip((request.query.page - 1) * request.query.pageSize);
+    }
+
+    if (request.query.title && request.query.title.length > 0) {
+        let filter = new RegExp('^' + RegExp.escapeString(request.query.title) + '.*', 'gi');
+        query.where('title').regex(filter);
+    }
+
+    if (request.query.tags) {
+        query.where('tags').in(request.query.tags);
+    }
+
+    if (request.query.pilots) {
+        query.where('pilots').in(request.query.pilots);
+    }
+
+    return query;
+}
 
 module.exports = [
     {
@@ -15,51 +42,34 @@ module.exports = [
                     pageSize: Joi.number().min(10).max(50).default(15),
                     title: Joi.string().allow(''),
                     tags: Joi.array().items(Joi.string()).single(),
-                    pilots: Joi.array().items(Joi.string()).single(),
-                    count: Joi.boolean().default(false)
+                    pilots: Joi.array().items(Joi.string()).single()
                 }
             }
         },
-        handler: function (request, reply) {
-            var query = Acmi.find()
-                .sort('-uploadedAt');
-
-            if (!request.query.count) {
-                query = query.limit(request.query.pageSize)
-                    .skip((request.query.page - 1) * request.query.pageSize);
+        handler: (request, reply) => {
+            acmiQuery(request, false)
+                .exec()
+                .then(acmis => reply(acmis))
+                .catch(err => reply(Boom.badImplementation(err)));
+        }
+    },
+    {
+        path: '/api/acmi/count',
+        method: 'GET',
+        config: {
+            validate: {
+                query: {
+                    title: Joi.string().allow(''),
+                    tags: Joi.array().items(Joi.string()).single(),
+                    pilots: Joi.array().items(Joi.string()).single()
+                }
             }
-
-            if (request.query.title && request.query.title.length > 0) {
-                let filter = new RegExp('^' + RegExp.escapeString(request.query.title) + '.*', 'gi');
-                query = query.where('title').regex(filter);
-            }
-
-            if (request.query.tags) {
-                query = query.where('tags').in(request.query.tags);
-            }
-
-            if (request.query.pilots) {
-                query = query.where('pilots').in(request.query.pilots);
-            }
-
-            if (request.query.count) {
-                query.count(function (err, count) {
-                    if (err) {
-                        return reply(Boom.badImplementation(err));
-                    }
-
-                    return reply(count);
-                });
-            }
-            else {
-                query.exec(function (err, acmis) {
-                    if (err) {
-                        return reply(Boom.badImplementation(err));
-                    }
-
-                    return reply(acmis);
-                });
-            }
+        },
+        handler: (request, reply) => {
+            acmiQuery(request, true)
+                .count()
+                .then(count => reply(count))
+                .catch(err => reply(Boom.badImplementation(err)));
         }
     },
     {
@@ -73,16 +83,42 @@ module.exports = [
                 payload: Acmi.validationSchema
             }
         },
-        handler: function (request, reply) {
-            var acmi = new Acmi(request.payload);
-            acmi.save(function (err) {
-                if (err) {
-                    return reply(Boom.badImplementation(err));
-                }
+        handler: (request, reply) => {
+            Acmi.create(request.payload)
+                .then(acmi => {
+                    reply.publishTagUpdates(acmi.tags, () => {
+                        reply();
+                    });
+                })
+                .catch(err => reply(Boom.badImplementation(err)));
+        }
+    },
+    {
+        path: '/api/acmi/policy',
+        method: 'GET',
+        handler: (request, reply) => {
+            let policyObject = {
+                expiration: new Date(Date.now() + 600000).toISOString(),
+                conditions: [
+                    { bucket: '27thvfw' },
+                    [ 'starts-with', '$key', 'acmis/' ],
+                    { acl: 'public-read' },
+                    [ 'starts-with', '$Content-Type', ''],
+                    [ 'starts-with', '$filename', ''],
+                    [ 'content-length-range', 0, 1024 * 1024 * 25]
+                ]
+            };
 
-                reply.publishTagUpdates(acmi.tags, () => {
-                    reply();
-                });
+            var policy = new Buffer(JSON.stringify(policyObject)).toString('base64');
+            var signature = crypto
+                .createHmac('sha1', config.aws.secret)
+                .update(policy)
+                .digest('base64');
+
+            return reply({
+                key: config.aws.key,
+                policy: policy,
+                signature: signature
             });
         }
     }

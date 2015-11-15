@@ -7,6 +7,8 @@ require('bootstrap');
 require('angular');
 require('angular-new-router');
 require('ng-tags-input');
+require('ng-file-upload');
+require('angular-truncate-2');
 require('templates');
 require('angular-ui-bootstrap');
 
@@ -16,6 +18,7 @@ require('./services/pilot-service');
 require('./services/tag-service');
 
 require('./directives/alert-container');
+require('./directives/link-errors');
 
 require('./components/acmi');
 require('./components/upload-acmi');

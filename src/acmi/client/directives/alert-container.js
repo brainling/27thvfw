@@ -14,7 +14,7 @@ angular.module('27th.acmi.directives.alertContainer', [
                     this.alertService = alertService;
                     this.alert = null;
 
-                    $rootScope.$on('alerts.new', function() {
+                    $rootScope.$on('alerts.new', () => {
                         if(!self.alert) {
                             self.alert = alertService.nextAlert();
                         }
@@ -25,5 +25,5 @@ angular.module('27th.acmi.directives.alertContainer', [
                     this.alert = this.alertService.nextAlert();
                 }
             }
-        }
+        };
     });

@@ -1,9 +1,9 @@
 'use strict';
 
-var Pilot = require('../../common/models/pilot');
-var Joi = require('joi');
-var Boom = require('boom');
-var _ = require('lodash');
+const Pilot = require('../../common/models/pilot');
+const Joi = require('joi');
+const Boom = require('boom');
+const _ = require('lodash');
 
 module.exports = [
     {
@@ -16,7 +16,7 @@ module.exports = [
                 }
             }
         },
-        handler: function (request, reply) {
+        handler: (request, reply) => {
             var query = Pilot.find()
                 .limit(5);
 
@@ -25,11 +25,12 @@ module.exports = [
             }
 
             query.exec()
-                .then(function (pilots) {
-                    reply(_.map(pilots, function(pilot) {
+                .then(pilots => {
+                    reply(_.map(pilots, pilot => {
                         return pilot.name;
                     }));
-                }, function(err) {
+                })
+                .catch(err => {
                     reply(Boom.badImplementation(err));
                 });
         }

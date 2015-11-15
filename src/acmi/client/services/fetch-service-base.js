@@ -7,25 +7,29 @@ module.exports = class {
     }
 
     getAsync(url, params) {
-        var deferred = this.$q.defer();
+        let deferred = this.$q.defer();
 
-        this.$http.get(url, { params: params || {} }).then(function(response) {
-            deferred.resolve(response.data);
-        }, function(err) {
-            deferred.reject(err);
-        });
+        this.$http.get(url, { params: params || {} })
+            .then(response => {
+                deferred.resolve(response.data);
+            })
+            .catch(err => {
+                deferred.reject(err);
+            });
 
         return deferred.promise;
     }
 
     postAsync(url, payload) {
-        var deferred = this.$q.defer();
+        let deferred = this.$q.defer();
 
-        this.$http.post(url, payload).then(function(response) {
-            deferred.resolve(response.data);
-        }, function(err) {
-            deferred.reject(err);
-        });
+        this.$http.post(url, payload)
+            .then(response => {
+                deferred.resolve(response.data);
+            })
+            .catch(err => {
+                deferred.reject(err);
+            });
 
         return deferred.promise;
     }

@@ -1,9 +1,9 @@
 'use strict';
 
-var Tag = require('../../common/models/tag');
-var Joi = require('joi');
-var Boom = require('boom');
-var _ = require('lodash');
+const Tag = require('../../common/models/tag');
+const Joi = require('joi');
+const Boom = require('boom');
+const _ = require('lodash');
 
 module.exports = [
     {
@@ -17,23 +17,21 @@ module.exports = [
                 }
             }
         },
-        handler: function (request, reply) {
+        handler: (request, reply) => {
             var query = Tag.find()
+                .sort('-rank')
                 .limit(request.query.top);
 
             if (request.query.query && request.query.query.length > 0) {
                 query.where('tag', new RegExp('^' + request.query.query, 'i'));
             }
 
-            query.sort('-rank')
+            query
                 .exec()
-                .then(function (tags) {
-                    reply(_.map(tags, function(tag) {
-                        return tag.tag;
-                    }));
-                }, function (err) {
-                    reply(Boom.badImplementation(err));
-                });
+                .then(tags => {
+                    reply(_.map(tags, tag => tag.tag));
+                })
+                .catch(err => reply(Boom.badImplementation(err)));
         }
     }
 ];

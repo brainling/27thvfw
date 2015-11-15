@@ -1,22 +1,22 @@
 'use strict';
 
-let amqp = require('amqp');
-let config = require('../../../config').get('/queues');
+const amqp = require('amqp');
+const config = require('../../../config').get('/queues');
 
-exports.register = function(server, options, next) {
+exports.register = function (server, options, next) {
     const connection = amqp.createConnection({
         url: config.rabbit.url
     });
 
-    connection.on('ready', function () {
+    connection.on('ready', () => {
         const exchange = connection.exchange('tag.updates', {
             durable: true,
             autoDelete: false,
             confirm: true
         });
 
-        exchange.on('open', function () {
-            server.decorate('reply', 'publishTagUpdates', function (tags, done) {
+        exchange.on('open', () => {
+            server.decorate('reply', 'publishTagUpdates', (tags, done) => {
                 exchange.publish('', tags);
                 done();
             });

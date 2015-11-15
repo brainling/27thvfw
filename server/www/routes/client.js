@@ -1,18 +1,24 @@
 'use strict';
 
-var path = require('path');
+const path = require('path');
 
 module.exports = [
     {
         method: 'GET',
         path: '/',
-        handler: function(request, response) {
+        handler: (request, response) => {
             return response.redirect('/acmi');
         }
     },
     {
         method: 'GET',
         path: '/acmi',
+        config: {
+            cors: {
+                origin: [ '*' ],
+                headers: [ 'Content-Type' ]
+            }
+        },
         handler: {
             file: 'dist/acmi/index.html'
         }
@@ -21,7 +27,7 @@ module.exports = [
         method: 'GET',
         path: '/acmi/{filename}',
         handler: {
-            file: function(request) {
+            file: request => {
                 return path.join('dist/acmi', request.params.filename);
             }
         }
@@ -30,8 +36,8 @@ module.exports = [
         method: 'GET',
         path: '/fonts/{filename}',
         handler: {
-            file: function(request) {
-                    return path.join('node_modules/bootstrap/fonts', request.params.filename);
+            file: request => {
+                return path.join('node_modules/bootstrap/fonts', request.params.filename);
             }
         }
     }

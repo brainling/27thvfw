@@ -1,9 +1,10 @@
 'use strict';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 angular.module('27th.acmi.log', [
         'ui.bootstrap',
+        'truncate',
         '27th.acmi.services.acmi',
         '27th.acmi.services.alert'
     ])
@@ -17,11 +18,11 @@ angular.module('27th.acmi.log', [
             this.acmis = [];
             this.totalAcmis = 0;
             this.currentPage = 1;
-            this.pageSize = 15;
+            this.pageSize = 10;
             this.currentFilters = {};
 
             this.refresh();
-            $rootScope.$on('acmi.filterChanged', function (evt, params) {
+            $rootScope.$on('acmi.filterChanged', (evt, params) => {
                 self.refresh(params);
                 self.currentFilters = params;
             });
@@ -29,16 +30,19 @@ angular.module('27th.acmi.log', [
 
         refresh(params) {
             let self = this;
-            this.acmiService.count(params).then(function(count) {
+            this.acmiService.count(params).then(count => {
                 self.totalAcmis = count;
-                self.acmiService.get(_.merge({
-                    page: self.currentPage,
-                    pageSize: self.pageSize
-                }, params)).then(function (acmis) {
-                    self.acmis = acmis;
-                }, function(err) {
-                    self.alertService.error('Could not fetch ACMI\': ' + err.message);
-                });
+                self.acmiService
+                    .get(_.merge({
+                        page: self.currentPage,
+                        pageSize: self.pageSize
+                    }, params))
+                    .then(acmis => {
+                        self.acmis = acmis;
+                    })
+                    .catch(err => {
+                        self.alertService.error('Could not fetch ACMI\': ' + err.message);
+                    });
             });
         }
 

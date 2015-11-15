@@ -31,14 +31,14 @@ var store = new confidence.Store({
         $filter: 'env',
         production: {
             aws: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+                key: process.env.AWS_KEY,
+                secret: process.env.AWS_SECRET
             }
         },
         $default: {
             aws: {
-                accessKeyId: localConfig.awsAccessKeyId,
-                secretAccessKey: localConfig.awsSecretAccessKey
+                key: localConfig.awsKey,
+                secret: localConfig.awsSecret
             }
         }
     },

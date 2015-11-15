@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
-let cluster = require('cluster');
-let winston = require('winston');
-let _ = require('lodash');
-let amqp = require('amqp');
-let config = require('../config').get('/logging');
+const cluster = require('cluster');
+const winston = require('winston');
+const amqp = require('amqp');
+const config = require('../config').get('/logging');
 
 winston.level = config.debug ? 'debug' : 'info';
 
@@ -23,7 +22,7 @@ if(cluster.isMaster) {
            task: task
         });
 
-        worker.on('message', function(msg) {
+        worker.on('message', msg => {
             winston.debug('Worker %s registered for %s', msg.id, msg.task);
             childTasks[msg.id] = msg.task;
         });
@@ -42,7 +41,7 @@ if(cluster.isMaster) {
 else {
     let task = process.env.task || 'www';
     try {
-        cluster.worker.send({ id: cluster.worker.id, task: task }, function() {
+        cluster.worker.send({ id: cluster.worker.id, task: task }, () => {
             require('../server/' + task)();
         });
     }

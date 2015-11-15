@@ -1,17 +1,17 @@
 'use strict';
 
 
-var hapi = require('hapi');
-var winston = require('winston');
-var config = require('../../config').get('/');
+const hapi = require('hapi');
+const winston = require('winston');
+const config = require('../../config').get('/');
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 mongoose.Promise = global.Promise; // Use ES6 promises
 
 winston.level = config.logging.debug ? 'debug' : 'info';
 
 if(!RegExp.escapeString) {
-    RegExp.escapeString = function (str) {
+    RegExp.escapeString =  function(str) {
         return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     };
 }
@@ -24,11 +24,11 @@ class Server {
             port: 5000
         });
 
-        var self = this;
+        let self = this;
         this.server.register([
             require('inert'),
             require('./plugins/queues')
-        ], function(err) {
+        ], err => {
             if(err) {
                 throw err;
             }
@@ -45,14 +45,14 @@ class Server {
     }
 
     start() {
-        this.server.start(function () {
+        this.server.start(() => {
             winston.info('Web server started (' + (process.env.NODE_ENV || 'dev') + ')');
         });
     }
 }
 
 module.exports = function() {
-    const server = new Server(function () {
+    const server = new Server(() => {
         server.start();
     });
 };

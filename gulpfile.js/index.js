@@ -1,6 +1,6 @@
 'use strict';
 
-var gulp = require('gulp');
+const gulp = require('gulp');
 require('./acmi');
 
 gulp.task('build', [ 'build:acmi' ]);

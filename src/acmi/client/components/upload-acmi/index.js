@@ -1,19 +1,23 @@
 'use strict';
 
-let _ = require('lodash');
+const _ = require('lodash');
+const uuid = require('uuid');
 
 angular.module('27th.acmi.upload', [
+        'ngFileUpload',
         '27th.acmi.services.acmi',
         '27th.acmi.services.pilot',
-        '27th.acmi.services.tag'
+        '27th.acmi.services.tag',
+        '27th.acmi.directives.linkErrors'
     ])
     .controller('UploadAcmiController', class {
-        constructor($location, acmiService, pilotService, tagService, alertService) {
+        constructor($location, acmiService, pilotService, tagService, alertService, Upload) {
             this.$location = $location;
             this.acmiService = acmiService;
             this.pilotService = pilotService;
             this.tagService = tagService;
             this.alertService = alertService;
+            this.upload = Upload;
 
             this.acmi = {
                 title: '',
@@ -22,6 +26,18 @@ angular.module('27th.acmi.upload', [
                 pilots: [],
                 files: [ 'test' ]
             };
+            this.file = null;
+            this.uploading = false;
+            this.uploadProgress = 0;
+
+            let self = this;
+            acmiService.getPolicy()
+                .then(policy => {
+                    self.policy = policy;
+                })
+                .catch(err => {
+                    alertService.error(err);
+                });
         }
 
         uploadAcmi() {
@@ -30,11 +46,50 @@ angular.module('27th.acmi.upload', [
 
             acmi.tags = _.map(acmi.tags, t => t.text);
             acmi.pilots = _.map(acmi.pilots, p => p.text);
-            this.acmiService.upload(acmi).then(function() {
-                self.$location.path('/');
-                self.alertService.success('ACMI uploaded!');
-            }, function(err) {
-                self.alertService.error('Could not upload ACMI: ' + err.message);
+
+            let fileKey = uuid.v4().replace(/-/g, '');
+            acmi.files = [
+                {
+                    file: this.file.name,
+                    key: fileKey
+                }
+            ];
+
+            this.uploading = true;
+            let activeUpload = this.upload.upload({
+                url: 'https://27thvfw.s3.amazonaws.com/',
+                method: 'POST',
+                data: {
+                    key: 'acmis/' + fileKey + '/' + this.file.name,
+                    AWSAccessKeyId: this.policy.key,
+                    acl: 'public-read',
+                    policy: this.policy.policy,
+                    signature: this.policy.signature,
+                    'Content-Type': 'application/octet-stream',
+                    filename: this.file.name,
+                    file: this.file
+                }
+            });
+
+            activeUpload.then(resp => {
+                this.acmiService.upload(acmi)
+                    .then(() => {
+                        self.uploading = false;
+                        self.uploadProgress = 0;
+
+                        self.$location.path('/');
+                        self.alertService.success('ACMI uploaded!');
+                    })
+                    .catch(err => {
+                        self.uploading = false;
+                        self.uploadProgress = 0;
+
+                        self.alertService.error('Could not upload ACMI: ' + err.message);
+                    });
+            }, err => {
+                self.alertService.error(err);
+            }, evt => {
+                self.uploadProgress = parseInt(100.0 * evt.loaded / evt.total);
             });
         }
 

@@ -1,6 +1,6 @@
 'use strict';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 angular.module('27th.acmi.filter', [
     'ngTagsInput',
@@ -19,11 +19,11 @@ angular.module('27th.acmi.filter', [
             this.pilots = [];
             this.popularTags = [];
 
-            this.debouncedApply = _.debounce(function () {
+            this.debouncedApply = _.debounce(() => {
                 self.applyFilters();
             }, 500);
 
-            tagService.get(null, 10).then(function(tags) {
+            tagService.get(null, 10).then(tags => {
                 self.popularTags = tags;
             });
         }
