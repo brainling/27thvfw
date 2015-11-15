@@ -10,7 +10,7 @@ div(ng-controller='AcmiController as vm').acmi-details
                 div.row.summary-row
                     div.col-sm-8
                         h5 Details
-                        i {{ acmi.details | words: 30 }}
+                        | {{ acmi.details | words: 30 }}
                     div.col-sm-4
                         h5 Pilots
                         | {{ acmi.pilots.join(', ') }}
