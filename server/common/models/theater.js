@@ -8,6 +8,6 @@ let schema = Joi.object({
     name: Joi.string().max(128).allow('').meta({ index: true })
 });
 
-let model = mongoose.model('Campaign', Joigoose.convert(schema), 'campaigns');
+let model = mongoose.model('Theater', Joigoose.convert(schema), 'theaters');
 model.validationSchema = schema;
 module.exports = model;
