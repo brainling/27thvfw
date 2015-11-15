@@ -7,13 +7,20 @@ div(ng-controller='AcmiController as vm').acmi-details
                 i.glyphicon.glyphicon-download
         div.panel-body
             div.container-fluid
-                div.row
+                div.row.summary-row
                     div.col-sm-8
                         h5 Details
                         i {{ acmi.details | words: 30 }}
                     div.col-sm-4
                         h5 Pilots
                         | {{ acmi.pilots.join(', ') }}
+                div.row.detail-row-top
+                    div.col-sm-8
+                        span.tag-header Theater
+                        span.mission-details {{ acmi.theater }}
+                    div.col-sm-4
+                        span.tag-header Mission Type
+                        span.mission-details {{ acmi.missionType }}
                 div.row.detail-row
                     div.col-sm-8
                         span.tag-header Tags

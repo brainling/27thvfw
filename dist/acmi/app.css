@@ -6155,27 +6155,38 @@ body {
 .acmi-details .panel-body {
   padding: 11px; }
 
-.detail-row {
-  border-top: 1px solid #ddd;
-  margin-top: 15px;
-  padding-top: 3px; }
+.mission-details {
+  font-size: 12px;
+  font-style: italic;
+  color: #555555; }
+
+.summary-row {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 12px; }
+
+.detail-row, .detail-row-top {
+  margin-top: 2px;
+  padding-top: 1px; }
+
+.detail-row-top {
+  margin-top: 8px; }
 
 .uploaded-header {
   margin-right: 10px;
-  font-size: 12px;
+  font-size: 11px;
   color: #317EAC; }
 
 .uploaded-date {
-  font-size: 12px;
+  font-size: 11px;
   font-style: italic;
   color: #555555; }
 
 .tag-header {
   margin-right: 10px;
-  font-size: 12px;
+  font-size: 11px;
   color: #317EAC; }
 
 .tag-list {
-  font-size: 12px;
+  font-size: 11px;
   font-style: italic;
   color: #555555; }

@@ -66,27 +66,41 @@ body
     .panel-body
         padding: 11px
 
+.mission-details
+    font-size: 12px
+    font-style: italic
+    color: $text-color
+
+$detail-font-size: 11px
+
+.summary-row
+    border-bottom: 1px solid $panel-default-border
+    padding-bottom: 12px
+
 .detail-row
-    border-top: 1px solid $panel-default-border
-    margin-top: 15px
-    padding-top: 3px
+    margin-top: 2px
+    padding-top: 1px
+
+.detail-row-top
+    @extend .detail-row
+    margin-top: 8px
 
 .uploaded-header
     margin-right: 10px
-    font-size: 12px
+    font-size: $detail-font-size
     color: $headings-color
 
 .uploaded-date
-    font-size: 12px
+    font-size: $detail-font-size
     font-style: italic
     color: $text-color
 
 .tag-header
     margin-right: 10px
-    font-size: 12px
+    font-size: $detail-font-size
     color: $headings-color
 
 .tag-list
-    font-size: 12px
+    font-size: $detail-font-size
     font-style: italic
     color: $text-color
