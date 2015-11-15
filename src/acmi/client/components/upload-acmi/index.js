@@ -8,10 +8,12 @@ angular.module('27th.acmi.upload', [
         '27th.acmi.services.acmi',
         '27th.acmi.services.pilot',
         '27th.acmi.services.tag',
-        '27th.acmi.directives.linkErrors'
+        '27th.acmi.services.theater',
+        '27th.acmi.directives.linkErrors',
+        '27th.acmi.directives.loadingPanel'
     ])
     .controller('UploadAcmiController', class {
-        constructor($location, acmiService, pilotService, tagService, alertService, Upload) {
+        constructor($location, $q, acmiService, pilotService, tagService, theaterService, alertService, Upload) {
             this.$location = $location;
             this.acmiService = acmiService;
             this.pilotService = pilotService;
@@ -22,18 +24,27 @@ angular.module('27th.acmi.upload', [
             this.acmi = {
                 title: '',
                 details: '',
+                theater: 'KTO',
+                missionType: 'Campaign',
                 tags: [],
                 pilots: [],
-                files: [ 'test' ]
+                files: []
             };
             this.file = null;
             this.uploading = false;
             this.uploadProgress = 0;
+            this.loading = true;
+            this.theaters = [];
 
             let self = this;
-            acmiService.getPolicy()
-                .then(policy => {
-                    self.policy = policy;
+            $q.all([
+                theaterService.get(),
+                acmiService.getPolicy()
+            ])
+                .then(data => {
+                    self.theaters = data[0];
+                    self.policy = data[1];
+                    self.loading = false;
                 })
                 .catch(err => {
                     alertService.error(err);
@@ -51,13 +62,14 @@ angular.module('27th.acmi.upload', [
             acmi.files = [
                 {
                     file: this.file.name,
-                    key: fileKey
+                    key: fileKey,
+                    bucket: this.policy.bucket
                 }
             ];
 
             this.uploading = true;
             let activeUpload = this.upload.upload({
-                url: 'https://27thvfw.s3.amazonaws.com/',
+                url: 'https://' + this.policy.bucket + '.s3-us-west-2.amazonaws.com/',
                 method: 'POST',
                 data: {
                     key: 'acmis/' + fileKey + '/' + this.file.name,

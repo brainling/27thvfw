@@ -6,12 +6,14 @@ module.exports = class {
         this.$q = $q;
     }
 
-    getAsync(url, params) {
+    getAsync(url, params, transform = null) {
         let deferred = this.$q.defer();
 
         this.$http.get(url, { params: params || {} })
             .then(response => {
-                deferred.resolve(response.data);
+                deferred.resolve(
+                    transform ? transform(response.data) : response.data
+                );
             })
             .catch(err => {
                 deferred.reject(err);

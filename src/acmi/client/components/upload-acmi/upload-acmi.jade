@@ -1,29 +1,47 @@
 div(ng-controller='UploadAcmiController as vm')
-    form.form(name='uploadForm')
-        div.form-group(link-errors)
-            label(for='title') Title
-            input#title.form-control(type='text' name='title' ng-model='vm.acmi.title' ng-disabled='vm.uploading'
-                ng-required="true" ng-minlength=3 ng-maxlength=128)
-        div.form-group(link-errors)
-            label(for='details') Details
-            textarea#details.form-control(name='details' ng-model='vm.acmi.details' ng-disabled='vm.uploading'
-                ng-maxlength=2048)
-        div.form-group(link-errors)
-            label(for='tags') Tags
-            tags-input#tags(ng-model='vm.acmi.tags' placeholder='Tags' ng-disabled='vm.uploading'
-                ng-required='true')
-                auto-complete(source='vm.loadTags($query)' min-length=1)
-        div.form-group
-            label(for='pilots') Pilots
-            tags-input#pilots(ng-model='vm.acmi.pilots' placeholder='Pilots' add-from-autocomplete-only=true
-                ng-disabled='vm.uploading' ng-required='true')
-                auto-complete(source="vm.loadPilots($query)" min-length=2)
-        div.form-group
-            label(for='file') File
-            input#file.form-control(type='file' ng-model='vm.file' name='file' ngf-select accept='.acmi'
-                ng-required='true' ng-disabled='vm.uploading')
-        button.btn.btn-success(type='submit' ng-click='vm.uploadAcmi()'
-            ng-disabled='vm.uploading || uploadForm.$invalid') Upload
-    div.well(ng-hide='!vm.uploading')
-        h5 Uploading ACMI...
-        uib-progressbar(animate='false' value='vm.uploadProgress')
+    loading-panel(loading='vm.loading')
+        form.form(name='uploadForm')
+            div.container-fluid
+                div.row
+                    div.form-group.col-sm-9(link-errors)
+                        label(for='title') Title
+                        input#title.form-control(type='text' name='title' ng-model='vm.acmi.title' ng-disabled='vm.uploading'
+                            ng-required="true" ng-minlength=3 ng-maxlength=128)
+                    div.form-group.col-sm-3(link-errors)
+                        label(for='mission-type') Mission Type
+                        select#mission-type.form-control(ng-model='vm.acmi.missionType')
+                            option Campaign
+                            option TE
+                            option Dogfight
+                div.row
+                    div.form-group.col-sm-6
+                        label(for='file') File
+                        input#file.form-control(type='file' ng-model='vm.file' name='file' ngf-select accept='.acmi'
+                            ng-required='true' ng-disabled='vm.uploading')
+                    div.form-group.col-sm-6
+                        label(for='mission-type') Theater
+                        select#theater.form-control(ng-model='vm.acmi.theater'
+                            ng-options='theater.name as theater.name for theater in vm.theaters')
+                div.row
+                    div.form-group.col-sm-6(link-errors)
+                        label(for='tags') Tags
+                        tags-input#tags(ng-model='vm.acmi.tags' placeh older='Tags' ng-disabled='vm.uploading'
+                        ng-required='true')
+                            auto-complete(source='vm.loadTags($query)' min-length=1)
+                    div.form-group.col-sm-6
+                        label(for='pilots') Pilots
+                        tags-input#pilots(ng-model='vm.acmi.pilots' placeholder='Pilots' add-from-autocomplete-only=true
+                        ng-disabled='vm.uploading' ng-required='true')
+                            auto-complete(source="vm.loadPilots($query)" min-length=2)
+                div.row
+                    div.form-group.col-sm-12(link-errors)
+                        label(for='details') Details
+                        textarea#details.form-control(name='details' ng-model='vm.acmi.details' ng-disabled='vm.uploading'
+                        ng-maxlength=2048)
+                div.row
+                    div.col-sm-12
+                        button.btn.btn-success(type='submit' ng-click='vm.uploadAcmi()'
+                            ng-disabled='vm.uploading || uploadForm.$invalid') Upload
+        div.well(ng-hide='!vm.uploading')
+            h5 Uploading ACMI...
+            uib-progressbar(animate='false' value='vm.uploadProgress')

@@ -65667,9 +65667,11 @@ require('./services/alert-service');
 require('./services/acmi-service');
 require('./services/pilot-service');
 require('./services/tag-service');
+require('./services/theater-service');
 
 require('./directives/alert-container');
 require('./directives/link-errors');
+require('./directives/loading-panel');
 
 require('./components/acmi');
 require('./components/upload-acmi');
@@ -65703,7 +65705,7 @@ angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer
     return _class;
 })());
 
-},{"./components/acmi":29,"./components/acmi-filter":28,"./components/empty-sidebar":30,"./components/topnav":31,"./components/upload-acmi":32,"./directives/alert-container":33,"./directives/link-errors":34,"./services/acmi-service":35,"./services/alert-service":36,"./services/pilot-service":38,"./services/tag-service":39,"angular":6,"angular-new-router":1,"angular-truncate-2":2,"angular-ui-bootstrap":3,"bootstrap":7,"jquery":20,"ng-file-upload":23,"ng-tags-input":24,"templates":"templates"}],28:[function(require,module,exports){
+},{"./components/acmi":29,"./components/acmi-filter":28,"./components/empty-sidebar":30,"./components/topnav":31,"./components/upload-acmi":32,"./directives/alert-container":33,"./directives/link-errors":34,"./directives/loading-panel":35,"./services/acmi-service":36,"./services/alert-service":37,"./services/pilot-service":39,"./services/tag-service":40,"./services/theater-service":41,"angular":6,"angular-new-router":1,"angular-truncate-2":2,"angular-ui-bootstrap":3,"bootstrap":7,"jquery":20,"ng-file-upload":23,"ng-tags-input":24,"templates":"templates"}],28:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -65856,8 +65858,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var _ = require('lodash');
 var uuid = require('uuid');
 
-angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '27th.acmi.services.pilot', '27th.acmi.services.tag', '27th.acmi.directives.linkErrors']).controller('UploadAcmiController', (function () {
-    function _class($location, acmiService, pilotService, tagService, alertService, Upload) {
+angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '27th.acmi.services.pilot', '27th.acmi.services.tag', '27th.acmi.services.theater', '27th.acmi.directives.linkErrors', '27th.acmi.directives.loadingPanel']).controller('UploadAcmiController', (function () {
+    function _class($location, $q, acmiService, pilotService, tagService, theaterService, alertService, Upload) {
         _classCallCheck(this, _class);
 
         this.$location = $location;
@@ -65870,17 +65872,23 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
         this.acmi = {
             title: '',
             details: '',
+            theater: 'KTO',
+            missionType: 'Campaign',
             tags: [],
             pilots: [],
-            files: ['test']
+            files: []
         };
         this.file = null;
         this.uploading = false;
         this.uploadProgress = 0;
+        this.loading = true;
+        this.theaters = [];
 
         var self = this;
-        acmiService.getPolicy().then(function (policy) {
-            self.policy = policy;
+        $q.all([theaterService.get(), acmiService.getPolicy()]).then(function (data) {
+            self.theaters = data[0];
+            self.policy = data[1];
+            self.loading = false;
         }).catch(function (err) {
             alertService.error(err);
         });
@@ -65904,12 +65912,13 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
             var fileKey = uuid.v4().replace(/-/g, '');
             acmi.files = [{
                 file: this.file.name,
-                key: fileKey
+                key: fileKey,
+                bucket: this.policy.bucket
             }];
 
             this.uploading = true;
             var activeUpload = this.upload.upload({
-                url: 'https://27thvfw.s3.amazonaws.com/',
+                url: 'https://' + this.policy.bucket + '.s3-us-west-2.amazonaws.com/',
                 method: 'POST',
                 data: {
                     key: 'acmis/' + fileKey + '/' + this.file.name,
@@ -66016,6 +66025,23 @@ angular.module('27th.acmi.directives.linkErrors', []).directive('linkErrors', fu
 },{}],35:[function(require,module,exports){
 'use strict';
 
+angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
+    return {
+        restrict: 'E',
+        transclude: true,
+        scope: {
+            loading: '=',
+            opaque: '@'
+        },
+        templateUrl: './directives/loading-panel.html',
+        controllerAs: 'vm',
+        controller: function controller() {}
+    };
+});
+
+},{}],36:[function(require,module,exports){
+'use strict';
+
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -66039,7 +66065,41 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
     _createClass(_class, [{
         key: 'get',
         value: function get(params) {
-            return this.getAsync('/api/acmi', params || {});
+            return this.getAsync('/api/acmi', params || {}, function (data) {
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    var _loop = function _loop() {
+                        var item = _step.value;
+
+                        item.downloadPath = function () {
+                            var file = item.files[0];
+                            return 'https://' + file.bucket + '.s3-us-west-2.amazonaws.com/acmis/' + file.key + '/' + file.file;
+                        };
+                    };
+
+                    for (var _iterator = data[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        _loop();
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+
+                return data;
+            });
         }
     }, {
         key: 'getPolicy',
@@ -66061,7 +66121,7 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
     return _class;
 })(base));
 
-},{"./fetch-service-base":37,"lodash":21}],36:[function(require,module,exports){
+},{"./fetch-service-base":38,"lodash":21}],37:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66098,7 +66158,7 @@ angular.module('27th.acmi.services.alert', []).service('alertService', (function
     return _class;
 })());
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66116,10 +66176,12 @@ module.exports = (function () {
     _createClass(_class, [{
         key: 'getAsync',
         value: function getAsync(url, params) {
+            var transform = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+
             var deferred = this.$q.defer();
 
             this.$http.get(url, { params: params || {} }).then(function (response) {
-                deferred.resolve(response.data);
+                deferred.resolve(transform ? transform(response.data) : response.data);
             }).catch(function (err) {
                 deferred.reject(err);
             });
@@ -66144,7 +66206,7 @@ module.exports = (function () {
     return _class;
 })();
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66178,7 +66240,7 @@ angular.module('27th.acmi.services.pilot', []).service('pilotService', (function
     return _class;
 })(base));
 
-},{"./fetch-service-base":37}],39:[function(require,module,exports){
+},{"./fetch-service-base":38}],40:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66215,17 +66277,49 @@ angular.module('27th.acmi.services.tag', []).service('tagService', (function (_b
     return _class;
 })(base));
 
-},{"./fetch-service-base":37}],"templates":[function(require,module,exports){
+},{"./fetch-service-base":38}],41:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var base = require('./fetch-service-base');
+angular.module('27th.acmi.services.theater', []).service('theaterService', (function (_base) {
+    _inherits(_class, _base);
+
+    function _class($http, $q) {
+        _classCallCheck(this, _class);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
+    }
+
+    _createClass(_class, [{
+        key: 'get',
+        value: function get() {
+            return this.getAsync('/api/theaters');
+        }
+    }]);
+
+    return _class;
+})(base));
+
+},{"./fetch-service-base":38}],"templates":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.templates", []).run(["$templateCache", function ($templateCache) {
   $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
+  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
   $templateCache.put("./topnav/topnav.html", "<nav class=\"navbar navbar-inverse navbar-fixed-top\"><div class=\"container-fluid\"><div class=\"navbar-header\"><button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a href=\"/acmi\" class=\"navbar-brand\">ACMI Log</a></div><div id=\"navbar\" class=\"navbar-collapse collapse\"><ul class=\"nav navbar-nav\"><li><a ng-link=\"upload\">Upload</a></li></ul></div></div></nav>");
-  $templateCache.put("./components/acmi/acmi.html", "\n<div ng-controller=\"AcmiController as vm\" class=\"acmi-details\">\n  <div ng-repeat=\"acmi in vm.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"https://27thvfw.s3.amazonaws.com/acmis/{{ acmi.files[0].key }}/{{ acmi.files[0].file }}\" download=\"download\" class=\"pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5><i>{{ acmi.details | words: 30 }}</i>\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"vm.currentPage\" total-items=\"vm.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"vm.pageChanged()\"></uib-pagination>\n</nav>");
+  $templateCache.put("./components/acmi/acmi.html", "\n<div ng-controller=\"AcmiController as vm\" class=\"acmi-details\">\n  <div ng-repeat=\"acmi in vm.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"{{ acmi.downloadPath() }}\" download=\"download\" class=\"pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5><i>{{ acmi.details | words: 30 }}</i>\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"vm.currentPage\" total-items=\"vm.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"vm.pageChanged()\"></uib-pagination>\n</nav>");
   $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div ng-controller=\"AcmiFilterController as vm\">\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <label for=\"title\"></label>\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"vm.debouncedApply()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.tags\" placeholder=\"Tags\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ vm.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
   $templateCache.put("./components/topnav/topnav.html", "\n<nav ng-controller=\"TopnavController as vm\" class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
-  $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div ng-controller=\"UploadAcmiController as vm\">\n  <form name=\"uploadForm\" class=\"form\">\n    <div link-errors=\"link-errors\" class=\"form-group\">\n      <label for=\"title\">Title</label>\n      <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"vm.acmi.title\" ng-disabled=\"vm.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n    </div>\n    <div link-errors=\"link-errors\" class=\"form-group\">\n      <label for=\"details\">Details</label>\n      <textarea id=\"details\" name=\"details\" ng-model=\"vm.acmi.details\" ng-disabled=\"vm.uploading\" ng-maxlength=\"2048\" class=\"form-control\"></textarea>\n    </div>\n    <div link-errors=\"link-errors\" class=\"form-group\">\n      <label for=\"tags\">Tags</label>\n      <tags-input id=\"tags\" ng-model=\"vm.acmi.tags\" placeholder=\"Tags\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n        <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <label for=\"pilots\">Pilots</label>\n      <tags-input id=\"pilots\" ng-model=\"vm.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"add-from-autocomplete-only\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n        <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <label for=\"file\">File</label>\n      <input id=\"file\" type=\"file\" ng-model=\"vm.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"vm.uploading\" class=\"form-control\"/>\n    </div>\n    <button type=\"submit\" ng-click=\"vm.uploadAcmi()\" ng-disabled=\"vm.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n  </form>\n  <div ng-hide=\"!vm.uploading\" class=\"well\">\n    <h5>Uploading ACMI...</h5>\n    <uib-progressbar animate=\"false\" value=\"vm.uploadProgress\"></uib-progressbar>\n  </div>\n</div>");
+  $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div ng-controller=\"UploadAcmiController as vm\">\n  <loading-panel loading=\"vm.loading\">\n    <form name=\"uploadForm\" class=\"form\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-9\">\n            <label for=\"title\">Title</label>\n            <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"vm.acmi.title\" ng-disabled=\"vm.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n          </div>\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-3\">\n            <label for=\"mission-type\">Mission Type</label>\n            <select id=\"mission-type\" ng-model=\"vm.acmi.missionType\" class=\"form-control\">\n              <option>Campaign</option>\n              <option>TE</option>\n              <option>Dogfight</option>\n            </select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"file\">File</label>\n            <input id=\"file\" type=\"file\" ng-model=\"vm.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"vm.uploading\" class=\"form-control\"/>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"mission-type\">Theater</label>\n            <select id=\"theater\" ng-model=\"vm.acmi.theater\" ng-options=\"theater.name as theater.name for theater in vm.theaters\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-6\">\n            <label for=\"tags\">Tags</label>\n            <tags-input id=\"tags\" ng-model=\"vm.acmi.tags\" placeh=\"placeh\" older=\"Tags\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n            </tags-input>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"pilots\">Pilots</label>\n            <tags-input id=\"pilots\" ng-model=\"vm.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"add-from-autocomplete-only\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n            </tags-input>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"details\">Details</label>\n            <textarea id=\"details\" name=\"details\" ng-model=\"vm.acmi.details\" ng-disabled=\"vm.uploading\" ng-maxlength=\"2048\" class=\"form-control\"></textarea>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"col-sm-12\">\n            <button type=\"submit\" ng-click=\"vm.uploadAcmi()\" ng-disabled=\"vm.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n          </div>\n        </div>\n      </div>\n    </form>\n    <div ng-hide=\"!vm.uploading\" class=\"well\">\n      <h5>Uploading ACMI...</h5>\n      <uib-progressbar animate=\"false\" value=\"vm.uploadProgress\"></uib-progressbar>\n    </div>\n  </loading-panel>\n</div>");
 }]);
 
 },{}]},{},[27]);

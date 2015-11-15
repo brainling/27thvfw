@@ -21,11 +21,11 @@ function acmiQuery(request, count) {
     }
 
     if (request.query.tags) {
-        query.where('tags').in(request.query.tags);
+        query.where('tags').all(request.query.tags);
     }
 
     if (request.query.pilots) {
-        query.where('pilots').in(request.query.pilots);
+        query.where('pilots').all(request.query.pilots);
     }
 
     return query;
@@ -100,7 +100,7 @@ module.exports = [
             let policyObject = {
                 expiration: new Date(Date.now() + 600000).toISOString(),
                 conditions: [
-                    { bucket: '27thvfw' },
+                    { bucket: config.aws.bucket },
                     [ 'starts-with', '$key', 'acmis/' ],
                     { acl: 'public-read' },
                     [ 'starts-with', '$Content-Type', ''],
@@ -118,7 +118,8 @@ module.exports = [
             return reply({
                 key: config.aws.key,
                 policy: policy,
-                signature: signature
+                signature: signature,
+                bucket: config.aws.bucket
             });
         }
     }

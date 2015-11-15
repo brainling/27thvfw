@@ -9,10 +9,13 @@ let schema = Joi.object({
     details: Joi.string().max(2048),
     pilots: Joi.array().items(Joi.string()).required(),
     tags: Joi.array().items(Joi.string().min(2).max(25).meta({ lowercase: true })).meta({ index: true }),
+    theater: Joi.string().required().max(128),
+    missionType: Joi.string().required().max(64),
     files: Joi.array().items(Joi.object({
         file: Joi.string(),
-        key: Joi.string()
-    })).required(),
+        key: Joi.string(),
+        bucket: Joi.string()
+    }).meta({ _id: false })).required(),
     uploadedAt: Joi.date().default(() => Date.now(), 'Defaults to the current time')
 });
 

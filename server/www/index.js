@@ -38,6 +38,7 @@ class Server {
             self.server.route(require('./routes/acmi'));
             self.server.route(require('./routes/pilots'));
             self.server.route(require('./routes/tags'));
+            self.server.route(require('./routes/theaters'));
             self.server.route(require('./routes/client'));
 
             ready();

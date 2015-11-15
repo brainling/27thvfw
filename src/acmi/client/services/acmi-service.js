@@ -10,7 +10,17 @@ angular.module('27th.acmi.services.acmi', [])
         }
 
         get(params) {
-            return this.getAsync('/api/acmi', params || {});
+            return this.getAsync('/api/acmi', params || {}, data => {
+                for (let item of data) {
+                    item.downloadPath = () => {
+                        var file = item.files[0];
+                        return 'https://' + file.bucket + '.s3-us-west-2.amazonaws.com/acmis/' +
+                            file.key + '/' + file.file;
+                    };
+                }
+
+                return data;
+            });
         }
 
         getPolicy() {

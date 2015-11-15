@@ -16,9 +16,11 @@ require('./services/alert-service');
 require('./services/acmi-service');
 require('./services/pilot-service');
 require('./services/tag-service');
+require('./services/theater-service');
 
 require('./directives/alert-container');
 require('./directives/link-errors');
+require('./directives/loading-panel');
 
 require('./components/acmi');
 require('./components/upload-acmi');

@@ -2,7 +2,7 @@ div(ng-controller='AcmiController as vm').acmi-details
     div.panel.panel-default(ng-repeat='acmi in vm.acmis')
         div.panel-heading
             span.acmi-header {{ acmi.title }}
-            a.pull-right(href='https://27thvfw.s3.amazonaws.com/acmis/{{ acmi.files[0].key }}/{{ acmi.files[0].file }}'
+            a.pull-right(href='{{ acmi.downloadPath() }}'
                 download=true)
                 i.glyphicon.glyphicon-download
         div.panel-body

@@ -32,13 +32,15 @@ var store = new confidence.Store({
         production: {
             aws: {
                 key: process.env.AWS_KEY,
-                secret: process.env.AWS_SECRET
+                secret: process.env.AWS_SECRET,
+                bucket: process.env.AWS_BUCKET
             }
         },
         $default: {
             aws: {
                 key: localConfig.awsKey,
-                secret: localConfig.awsSecret
+                secret: localConfig.awsSecret,
+                bucket: localConfig.awsBucket
             }
         }
     },
