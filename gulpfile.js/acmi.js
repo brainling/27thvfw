@@ -15,6 +15,7 @@ const merge = require('merge-stream');
 const ngAnnotate = require('gulp-ng-annotate');
 const uglify = require('gulp-uglify');
 const argv = require('yargs').argv;
+const rename = require('gulp-rename');
 
 
 gulp.task('build:acmi:lint', () =>
@@ -27,6 +28,7 @@ gulp.task('build:acmi:sass', () =>
         .pipe(sass({
             outputStyle: argv.production ? 'compressed' : 'nested'
         }).on('error', sass.logError))
+        .pipe(gulp.if(argv.production, rename('app.min.css')))
         .pipe(gulp.dest('dist/acmi')));
 
 gulp.task('build:acmi:jade', () => {
@@ -38,8 +40,13 @@ gulp.task('build:acmi:jade', () => {
 
     let index = gulp.src('src/acmi/index.jade')
         .pipe(jade({
-            pretty: argv.production ? false : true
+            pretty: argv.production ? false : true,
+            locals: {
+                appCss: argv.production ? 'app.min.css' : 'app.css',
+                appJs: argv.production ? 'app.min.js' : 'app.js'
+            }
         }))
+        .pipe(gulp.if(argv.production, rename('index.min.html')))
         .pipe(gulp.dest('dist/acmi'));
 
     return merge(templates, index);
@@ -59,7 +66,7 @@ gulp.task('build:acmi:browserify', [ 'build:acmi:lint', 'build:acmi:angular' ], 
         .require('./build/acmi/templates.js', { expose: 'templates' })
         .transform('babelify', { presets: [ 'es2015' ] })
         .bundle()
-        .pipe(source('app.js'))
+        .pipe(gulp.if(argv.production, source('app.min.js'), source('app.js')))
         .pipe(buffer())
         .pipe(gulp.if(argv.production, ngAnnotate()))
         .pipe(gulp.if(argv.production, uglify()))

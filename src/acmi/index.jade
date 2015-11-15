@@ -1,7 +1,7 @@
 doctype html
 html
     head
-        link(rel='stylesheet' href='acmi/app.css' type='text/css')
+        link(rel='stylesheet' href='acmi/#{appCss}' type='text/css')
     body(ng-app='27th.acmi' ng-controller='AppController as app')
         div(ng-viewport='topnav')
         div.container-fluid
@@ -12,4 +12,4 @@ html
                     alert-container
                     div(ng-viewport)
 
-        script(src='acmi/app.js' type='application/javascript')
+        script(src='acmi/#{appCss}' type='application/javascript')

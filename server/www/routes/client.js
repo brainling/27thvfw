@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const production = process.env.NODE_ENV === 'production';
 
 module.exports = [
     {
@@ -20,7 +21,7 @@ module.exports = [
             }
         },
         handler: {
-            file: 'dist/acmi/index.html'
+            file: production ? 'dist/acmi/index.min.html' : 'dist/acmi/index.html'
         }
     },
     {
