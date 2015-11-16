@@ -23,15 +23,15 @@ div(ng-controller='UploadAcmiController as vm')
                         select#theater.form-control(ng-model='vm.acmi.theater'
                             ng-options='theater.name as theater.name for theater in vm.theaters')
                 div.row
-                    div.form-group.col-sm-6(link-errors)
+                    div.form-group.col-sm-6
                         label(for='tags') Tags
                         tags-input#tags(ng-model='vm.acmi.tags' placeh older='Tags' ng-disabled='vm.uploading'
-                        ng-required='true')
+                            ng-required='true')
                             auto-complete(source='vm.loadTags($query)' min-length=1)
                     div.form-group.col-sm-6
                         label(for='pilots') Pilots
                         tags-input#pilots(ng-model='vm.acmi.pilots' placeholder='Pilots' add-from-autocomplete-only=true
-                        ng-disabled='vm.uploading' ng-required='true')
+                            ng-disabled='vm.uploading' ng-required='true')
                             auto-complete(source="vm.loadPilots($query)" min-length=2)
                 div.row
                     div.form-group.col-sm-12(link-errors)

@@ -1,4 +1,6 @@
-tags-input 
+@import "../../../node_modules/bootswatch-sass/cerulean/_variables"
+
+tags-input
     display: block
 
 tags-input *, tags-input *:before, tags-input *:after 
@@ -23,9 +25,9 @@ tags-input .tags
     word-wrap: break-word
     cursor: text
     background-color: #fff
-    border: 1px solid darkgray
+    border: 1px solid $input-border
     border-radius: 4px
-    box-shadow: 1px 1px 1px 0 lightgray inset
+    box-shadow: insert 0 1px 1px rgba(0, 0, 0, 0.075)
     height: 100%
 
 tags-input .tags.focused 
@@ -45,8 +47,8 @@ tags-input .tags .tag-item
     display: inline-block
     float: left
     font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif
-    height: 26px
-    line-height: 25px
+    height: 29px
+    line-height: 28px
     border: 1px solid #acacac
     border-radius: 3px
     background: -webkit-linear-gradient(top, #f0f9ff 0%, #cbebff 47%, #a1dbff 100%)
@@ -76,7 +78,7 @@ tags-input .tags .input
     padding: 0
     padding-left: 5px
     float: left
-    height: 26px
+    height: 32px
     font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif
 
 tags-input .tags .input.invalid-tag 
@@ -85,10 +87,10 @@ tags-input .tags .input.invalid-tag
 tags-input .tags .input::-ms-clear 
     display: none
 
-tags-input.ng-invalid .tags 
-    -webkit-box-shadow: 0 0 3px 1px rgba(255, 0, 0, 0.6)
-    -moz-box-shadow: 0 0 3px 1px rgba(255, 0, 0, 0.6)
-    box-shadow: 0 0 3px 1px rgba(255, 0, 0, 0.6)
+//tags-input.ng-invalid .tags
+//    -webkit-box-shadow: 0 0 3px 1px rgba(255, 0, 0, 0.6)
+//    -moz-box-shadow: 0 0 3px 1px rgba(255, 0, 0, 0.6)
+//    box-shadow: 0 0 3px 1px rgba(255, 0, 0, 0.6)
 
 tags-input[disabled] .host:focus 
     outline: none
