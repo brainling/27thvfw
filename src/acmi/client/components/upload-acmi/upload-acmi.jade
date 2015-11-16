@@ -9,10 +9,8 @@ div(ng-controller='UploadAcmiController as vm')
                             ng-required="true" ng-minlength=3 ng-maxlength=128)
                     div.form-group.col-sm-3(link-errors)
                         label(for='mission-type') Mission Type
-                        select#mission-type.form-control(ng-model='vm.acmi.missionType')
-                            option Campaign
-                            option TE
-                            option Dogfight
+                        select#mission-type.form-control(ng-model='vm.acmi.missionType'
+                            ng-options='type.value as type.name for type in vm.missionTypes')
                 div.row
                     div.form-group.col-sm-6
                         label(for='file') File

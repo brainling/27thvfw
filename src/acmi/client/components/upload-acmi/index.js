@@ -35,6 +35,7 @@ angular.module('27th.acmi.upload', [
             this.uploadProgress = 0;
             this.loading = true;
             this.theaters = [];
+            this.missionTypes = acmiService.getMissionTypes();
 
             let self = this;
             $q.all([

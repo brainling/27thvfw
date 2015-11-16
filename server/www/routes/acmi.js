@@ -20,6 +20,14 @@ function acmiQuery(request, count) {
         query.where('title').regex(filter);
     }
 
+    if (request.query.theater && request.query.theater.length > 0) {
+        query.where('theater').equals(request.query.theater);
+    }
+
+    if (request.query.missionType && request.query.missionType.length > 0) {
+        query.where('missionType').equals(request.query.missionType);
+    }
+
     if (request.query.tags) {
         query.where('tags').all(request.query.tags);
     }
@@ -40,7 +48,9 @@ module.exports = [
                 query: {
                     page: Joi.number().min(1).max(500).default(1),
                     pageSize: Joi.number().min(10).max(50).default(15),
-                    title: Joi.string().allow(''),
+                    title: Joi.string().max(128).allow(''),
+                    theater: Joi.string().max(128).allow(''),
+                    missionType: Joi.string().max(64).allow(''),
                     tags: Joi.array().items(Joi.string()).single(),
                     pilots: Joi.array().items(Joi.string()).single()
                 }
@@ -59,7 +69,9 @@ module.exports = [
         config: {
             validate: {
                 query: {
-                    title: Joi.string().allow(''),
+                    title: Joi.string().max(128).allow(''),
+                    theater: Joi.string().max(128).allow(''),
+                    missionType: Joi.string().max(64).allow(''),
                     tags: Joi.array().items(Joi.string()).single(),
                     pilots: Joi.array().items(Joi.string()).single()
                 }

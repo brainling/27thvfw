@@ -65714,8 +65714,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _ = require('lodash');
 
-angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.pilot', '27th.acmi.services.tag']).controller('AcmiFilterController', (function () {
-    function _class($rootScope, pilotService, tagService) {
+angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '27th.acmi.services.pilot', '27th.acmi.services.tag', '27th.acmi.services.theater']).controller('AcmiFilterController', (function () {
+    function _class($rootScope, $q, acmiService, pilotService, tagService, theaterService) {
+        var _this = this;
+
         _classCallCheck(this, _class);
 
         var self = this;
@@ -65727,30 +65729,44 @@ angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.pilot', '
         this.tags = [];
         this.pilots = [];
         this.popularTags = [];
+        this.theater = null;
+        this.theaters = [{
+            name: '<Any Theater>',
+            value: null
+        }];
+        this.missionType = null;
+        this.missionTypes = [{
+            name: '<Any Type>',
+            value: null
+        }].concat(acmiService.getMissionTypes());
 
-        this.debouncedApply = _.debounce(function () {
-            self.applyFilters();
-        }, 500);
+        var debouncedApply = function debouncedApply() {
+            self.$rootScope.$emit('acmi.filterChanged', {
+                title: self.title,
+                theater: self.theater,
+                missionType: self.missionType,
+                tags: _.map(self.tags, function (t) {
+                    return t.text;
+                }),
+                pilots: _.map(self.pilots, function (p) {
+                    return p.text;
+                })
+            });
+        };
+        this.applyFilters = _.debounce(debouncedApply, 500);
 
-        tagService.get(null, 10).then(function (tags) {
-            self.popularTags = tags;
+        $q.all([tagService.get(null, 10), theaterService.get()]).then(function (data) {
+            self.popularTags = data[0];
+            _this.theaters = _this.theaters.concat(_.map(data[1], function (t) {
+                return {
+                    name: t.name,
+                    value: t.name
+                };
+            }));
         });
     }
 
     _createClass(_class, [{
-        key: 'applyFilters',
-        value: function applyFilters() {
-            this.$rootScope.$emit('acmi.filterChanged', {
-                title: this.title,
-                tags: _.map(this.tags, function (t) {
-                    return t.text;
-                }),
-                pilots: _.map(this.pilots, function (p) {
-                    return p.text;
-                })
-            });
-        }
-    }, {
         key: 'loadPilots',
         value: function loadPilots(query) {
             return this.pilotService.get(query);
@@ -65883,6 +65899,7 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
         this.uploadProgress = 0;
         this.loading = true;
         this.theaters = [];
+        this.missionTypes = acmiService.getMissionTypes();
 
         var self = this;
         $q.all([theaterService.get(), acmiService.getPolicy()]).then(function (data) {
@@ -66116,6 +66133,20 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
         value: function upload(acmi) {
             return this.postAsync('/api/acmi', acmi);
         }
+    }, {
+        key: 'getMissionTypes',
+        value: function getMissionTypes() {
+            return [{
+                name: 'Campaign',
+                value: 'Campaign'
+            }, {
+                name: 'TE',
+                value: 'TE'
+            }, {
+                name: 'Dogfight',
+                value: 'Dogfight'
+            }];
+        }
     }]);
 
     return _class;
@@ -66316,10 +66347,10 @@ angular.module("27th.templates", []).run(["$templateCache", function ($templateC
   $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
   $templateCache.put("./topnav/topnav.html", "<nav class=\"navbar navbar-inverse navbar-fixed-top\"><div class=\"container-fluid\"><div class=\"navbar-header\"><button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a href=\"/acmi\" class=\"navbar-brand\">ACMI Log</a></div><div id=\"navbar\" class=\"navbar-collapse collapse\"><ul class=\"nav navbar-nav\"><li><a ng-link=\"upload\">Upload</a></li></ul></div></div></nav>");
   $templateCache.put("./components/acmi/acmi.html", "\n<div ng-controller=\"AcmiController as vm\" class=\"acmi-details\">\n  <div ng-repeat=\"acmi in vm.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"{{ acmi.downloadPath() }}\" download=\"download\" class=\"pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row summary-row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5>{{ acmi.details | characters: 250 }}\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row-top\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Theater</span><span class=\"mission-details\">{{ acmi.theater }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"tag-header\">Mission Type</span><span class=\"mission-details\">{{ acmi.missionType }}</span></div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"vm.currentPage\" total-items=\"vm.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"vm.pageChanged()\"></uib-pagination>\n</nav>");
-  $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div ng-controller=\"AcmiFilterController as vm\">\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <label for=\"title\"></label>\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"vm.debouncedApply()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.tags\" placeholder=\"Tags\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ vm.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
-  $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
+  $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div ng-controller=\"AcmiFilterController as vm\">\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"vm.applyFilters()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.tags\" placeholder=\"Tags\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"theater\" ng-model=\"vm.theater\" ng-change=\"vm.applyFilters()\" ng-options=\"theater.value as theater.name for theater in vm.theaters\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"mission-type\" ng-model=\"vm.missionType\" ng-change=\"vm.applyFilters()\" ng-options=\"type.value as type.name for type in vm.missionTypes\" class=\"form-control\"></select>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ vm.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
   $templateCache.put("./components/topnav/topnav.html", "\n<nav ng-controller=\"TopnavController as vm\" class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
-  $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div ng-controller=\"UploadAcmiController as vm\">\n  <loading-panel loading=\"vm.loading\">\n    <form name=\"uploadForm\" class=\"form\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-9\">\n            <label for=\"title\">Title</label>\n            <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"vm.acmi.title\" ng-disabled=\"vm.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n          </div>\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-3\">\n            <label for=\"mission-type\">Mission Type</label>\n            <select id=\"mission-type\" ng-model=\"vm.acmi.missionType\" class=\"form-control\">\n              <option>Campaign</option>\n              <option>TE</option>\n              <option>Dogfight</option>\n            </select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"file\">File</label>\n            <input id=\"file\" type=\"file\" ng-model=\"vm.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"vm.uploading\" class=\"form-control\"/>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"mission-type\">Theater</label>\n            <select id=\"theater\" ng-model=\"vm.acmi.theater\" ng-options=\"theater.name as theater.name for theater in vm.theaters\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"tags\">Tags</label>\n            <tags-input id=\"tags\" ng-model=\"vm.acmi.tags\" placeh=\"placeh\" older=\"Tags\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n            </tags-input>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"pilots\">Pilots</label>\n            <tags-input id=\"pilots\" ng-model=\"vm.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"add-from-autocomplete-only\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n            </tags-input>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"details\">Details</label>\n            <textarea id=\"details\" name=\"details\" ng-model=\"vm.acmi.details\" ng-disabled=\"vm.uploading\" ng-maxlength=\"2048\" class=\"form-control\"></textarea>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"col-sm-12\">\n            <button type=\"submit\" ng-click=\"vm.uploadAcmi()\" ng-disabled=\"vm.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n          </div>\n        </div>\n      </div>\n    </form>\n    <div ng-hide=\"!vm.uploading\" class=\"well\">\n      <h5>Uploading ACMI...</h5>\n      <uib-progressbar animate=\"false\" value=\"vm.uploadProgress\"></uib-progressbar>\n    </div>\n  </loading-panel>\n</div>");
+  $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
+  $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div ng-controller=\"UploadAcmiController as vm\">\n  <loading-panel loading=\"vm.loading\">\n    <form name=\"uploadForm\" class=\"form\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-9\">\n            <label for=\"title\">Title</label>\n            <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"vm.acmi.title\" ng-disabled=\"vm.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n          </div>\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-3\">\n            <label for=\"mission-type\">Mission Type</label>\n            <select id=\"mission-type\" ng-model=\"vm.acmi.missionType\" ng-options=\"type.value as type.name for type in vm.missionTypes\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"file\">File</label>\n            <input id=\"file\" type=\"file\" ng-model=\"vm.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"vm.uploading\" class=\"form-control\"/>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"mission-type\">Theater</label>\n            <select id=\"theater\" ng-model=\"vm.acmi.theater\" ng-options=\"theater.name as theater.name for theater in vm.theaters\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"tags\">Tags</label>\n            <tags-input id=\"tags\" ng-model=\"vm.acmi.tags\" placeh=\"placeh\" older=\"Tags\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n            </tags-input>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"pilots\">Pilots</label>\n            <tags-input id=\"pilots\" ng-model=\"vm.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"add-from-autocomplete-only\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n            </tags-input>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"details\">Details</label>\n            <textarea id=\"details\" name=\"details\" ng-model=\"vm.acmi.details\" ng-disabled=\"vm.uploading\" ng-maxlength=\"2048\" class=\"form-control\"></textarea>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"col-sm-12\">\n            <button type=\"submit\" ng-click=\"vm.uploadAcmi()\" ng-disabled=\"vm.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n          </div>\n        </div>\n      </div>\n    </form>\n    <div ng-hide=\"!vm.uploading\" class=\"well\">\n      <h5>Uploading ACMI...</h5>\n      <uib-progressbar animate=\"false\" value=\"vm.uploadProgress\"></uib-progressbar>\n    </div>\n  </loading-panel>\n</div>");
 }]);
 
 },{}]},{},[27]);
