@@ -1,0 +1,40 @@
+loading-panel(loading='acmiDetails.loading')
+    div.container-fluid
+        div.row
+            div.col-sm-10
+                h3 {{ acmiDetails.acmi.title }}
+            div.col-sm-2
+                a.download-btn.btn-info.btn-sm.pull-right(href='{{ acmiDetails.acmi.downloadPath() }}' download=true
+                uib-tooltip='Download' tooltip-popup-delay=750 role='button')
+                    | Download
+        div.row
+            div.col-sm-6
+                div.panel.panel-default
+                    div.panel-heading Info
+                    table.table.table-condensed
+                        tbody
+                            tr
+                                td(width='30%') Tags
+                                td {{ acmiDetails.acmi.tags.join(', ') }}
+                            tr
+                                td Uploaded
+                                td {{ acmiDetails.acmi.uploadedAt | date: 'MMM d, y h:mm a' }}
+            div.col-sm-6
+                div.panel.panel-default
+                    div.panel-heading Pilots
+                    table.table.table-condensed
+                        tbody
+                            tr(ng-repeat='pilot in acmiDetails.acmi.pilots')
+                                td {{ pilot }}
+        div.row
+            div.col-sm-12
+                div.panel.panel-default
+                    div.panel-heading Details
+                    div.panel-body
+                        p.details-text {{ acmiDetails.acmi.details }}
+        div.row(ng-hide='!acmiDetails.acmi.videoUrl')
+            div.col-sm-12
+                div.panel.panel-default
+                    div.panel-heading YouTube Video
+                    div.panel-body
+                        youtube-video(video-url='acmiDetails.acmi.videoUrl')

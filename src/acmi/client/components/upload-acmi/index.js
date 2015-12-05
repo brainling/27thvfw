@@ -28,7 +28,8 @@ angular.module('27th.acmi.upload', [
                 missionType: 'Campaign',
                 tags: [],
                 pilots: [],
-                files: []
+                files: [],
+                slug: 'new-acmi'
             };
             this.file = null;
             this.uploading = false;
@@ -37,15 +38,14 @@ angular.module('27th.acmi.upload', [
             this.theaters = [];
             this.missionTypes = acmiService.getMissionTypes();
 
-            let self = this;
             $q.all([
                 theaterService.get(),
                 acmiService.getPolicy()
             ])
                 .then(data => {
-                    self.theaters = data[0];
-                    self.policy = data[1];
-                    self.loading = false;
+                    this.theaters = data[0];
+                    this.policy = data[1];
+                    this.loading = false;
                 })
                 .catch(err => {
                     alertService.error(err);
@@ -54,7 +54,6 @@ angular.module('27th.acmi.upload', [
 
         uploadAcmi() {
             let acmi = angular.copy(this.acmi);
-            let self = this;
 
             acmi.tags = _.map(acmi.tags, t => t.text);
             acmi.pilots = _.map(acmi.pilots, p => p.text);
@@ -87,22 +86,22 @@ angular.module('27th.acmi.upload', [
             activeUpload.then(resp => {
                 this.acmiService.upload(acmi)
                     .then(() => {
-                        self.uploading = false;
-                        self.uploadProgress = 0;
+                        this.uploading = false;
+                        this.uploadProgress = 0;
 
-                        self.$location.path('/');
-                        self.alertService.success('ACMI uploaded!');
+                        this.$location.path('/');
+                        this.alertService.success('ACMI uploaded!');
                     })
                     .catch(err => {
-                        self.uploading = false;
-                        self.uploadProgress = 0;
+                        this.uploading = false;
+                        this.uploadProgress = 0;
 
-                        self.alertService.error('Could not upload ACMI: ' + err.message);
+                        this.alertService.error('Could not upload ACMI: ' + err.message);
                     });
             }, err => {
-                self.alertService.error(err);
+                this.alertService.error(err);
             }, evt => {
-                self.uploadProgress = parseInt(100.0 * evt.loaded / evt.total);
+                this.uploadProgress = parseInt(100.0 * evt.loaded / evt.total);
             });
         }
 

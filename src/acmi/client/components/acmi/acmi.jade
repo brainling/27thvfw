@@ -1,10 +1,19 @@
-div(ng-controller='AcmiController as vm').acmi-details
-    div.panel.panel-default(ng-repeat='acmi in vm.acmis')
+div.acmi-details
+    div.panel.panel-default(ng-repeat='acmi in acmi.acmis')
         div.panel-heading
             span.acmi-header {{ acmi.title }}
-            a.pull-right(href='{{ acmi.downloadPath() }}'
-                download=true)
+            a.download-link.pull-right(href='{{ acmi.downloadPath() }}' download=true uib-tooltip='Download'
+                tooltip-popup-delay=750)
                 i.glyphicon.glyphicon-download
+            a.copy-details-link.pull-right(clipboard text='acmi.detailsLink' uib-tooltip='Copy Link'
+                tooltip-popup-delay=750)
+                i.glyphicon.glyphicon-link
+            a.details-link.pull-right(ng-link='details({ id: acmi._id, slug: acmi.slug })' uib-tooltip='Details'
+                tooltip-popup-delay=750)
+                i.glyphicon.glyphicon-list
+            a.video-link.pull-right(href='{{ acmi.videoUrl }}' ng-hide='!acmi.videoUrl' uib-tooltip='YouTube Video'
+                tooltip-popup-delay=750)
+                i.glyphicon.glyphicon-film
         div.panel-body
             div.container-fluid
                 div.row.summary-row
@@ -29,6 +38,6 @@ div(ng-controller='AcmiController as vm').acmi-details
                         span.uploaded-header Uploaded
                         span.uploaded-date {{ acmi.uploadedAt | date: 'MMM d, y h:mm a' }}
 nav
-    uib-pagination(ng-model='vm.currentPage' total-items='vm.totalAcmis' max-size=5 boundary-links='true'
+    uib-pagination(ng-model='acmi.currentPage' total-items='acmi.totalAcmis' max-size=5 boundary-links='true'
         previous-text!='&lsaquo;' next-text!='&rsaquo;' first-text!='&laquo;' last-text!='&raquo;'
-        items-per-page='vm.pageSize' ng-change='vm.pageChanged()')
+        items-per-page='vm.pageSize' ng-change='acmi.pageChanged()')

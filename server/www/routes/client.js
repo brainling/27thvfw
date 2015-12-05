@@ -14,12 +14,12 @@ module.exports = [
     {
         method: 'GET',
         path: '/acmi',
-        config: {
-            cors: {
-                origin: [ '*' ],
-                headers: [ 'Content-Type' ]
-            }
-        },
+        //config: {
+        //    cors: {
+        //        origin: [ '*' ],
+        //        headers: [ 'Content-Type' ]
+        //    }
+        //},
         handler: {
             file: production ? 'dist/acmi/index.min.html' : 'dist/acmi/index.html'
         }

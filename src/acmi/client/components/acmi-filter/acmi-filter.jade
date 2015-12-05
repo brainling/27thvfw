@@ -1,24 +1,29 @@
-div(ng-controller='AcmiFilterController as vm')
+div
     h3 Filters
     form
         div.form-group
             input#title.form-control(type='text' placeholder='Title' ng-model='vm.title'
-                ng-change='vm.applyFilters()')
+                ng-change='acmiFilter.applyFilters()')
         div.form-group
-            tags-input(ng-model='vm.tags' placeholder='Tags' on-tag-added='vm.applyFilters()'
-                on-tag-removed='vm.applyFilters()')
-                auto-complete(source='vm.loadTags($query)' min-length=1)
+            tags-input(ng-model='acmiFilter.tags' placeholder='Tags' on-tag-added='acmiFilter.applyFilters()'
+                on-tag-removed='acmiFilter.applyFilters()')
+                auto-complete(source='acmiFilter.loadTags($query)' min-length=1)
         div.form-group
-            tags-input(ng-model='vm.pilots' placeholder='Pilots' add-from-autocomplete-only='true'
-                on-tag-added='vm.applyFilters()' on-tag-removed='vm.applyFilters()')
-                auto-complete(source="vm.loadPilots($query)" min-length=2)
+            tags-input(ng-model='acmiFilter.pilots' placeholder='Pilots' add-from-autocomplete-only='true'
+                on-tag-added='acmiFilter.applyFilters()' on-tag-removed='acmiFilter.applyFilters()')
+                auto-complete(source="acmiFilter.loadPilots($query)" min-length=2)
         div.form-group
-            select#theater.form-control(ng-model='vm.theater' ng-change='vm.applyFilters()'
-                ng-options='theater.value as theater.name for theater in vm.theaters')
+            select#theater.form-control(ng-model='acmiFilter.theater' ng-change='acmiFilter.applyFilters()'
+                placeholder='Theater' ng-options='theater.value as theater.name for theater in acmiFilter.theaters')
         div.form-group
-            select#mission-type.form-control(ng-model='vm.missionType' ng-change='vm.applyFilters()'
-                ng-options='type.value as type.name for type in vm.missionTypes')
+            select#mission-type.form-control(ng-model='acmiFilter.missionType' ng-change='acmiFilter.applyFilters()'
+                ng-options='type.value as type.name for type in acmiFilter.missionTypes')
+        div.form-group
+            div.checkbox
+                label
+                    input(type='checkbox' ng-model='acmiFilter.hasVideo' ng-change='acmiFilter.applyFilters()')
+                    | Has Video
     div.well
         h5 Popular Tags
         span
-            | {{ vm.popularTags.join(', ') }}
+            | {{ acmiFilter.popularTags.join(', ') }}

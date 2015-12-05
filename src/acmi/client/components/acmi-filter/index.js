@@ -11,8 +11,6 @@ angular.module('27th.acmi.filter', [
     ])
     .controller('AcmiFilterController', class {
         constructor($rootScope, $q, acmiService, pilotService, tagService, theaterService) {
-            let self = this;
-
             this.$rootScope = $rootScope;
             this.pilotService = pilotService;
             this.tagService = tagService;
@@ -20,6 +18,7 @@ angular.module('27th.acmi.filter', [
             this.tags = [];
             this.pilots = [];
             this.popularTags = [];
+            this.hasVideo = false;
             this.theater = null;
             this.theaters = [
                 {
@@ -35,13 +34,14 @@ angular.module('27th.acmi.filter', [
                 }]
                 .concat(acmiService.getMissionTypes());
 
-            const debouncedApply = function () {
-                self.$rootScope.$emit('acmi.filterChanged', {
-                    title: self.title,
-                    theater: self.theater,
-                    missionType: self.missionType,
-                    tags: _.map(self.tags, t => t.text),
-                    pilots: _.map(self.pilots, p => p.text)
+            const debouncedApply = () => {
+                this.$rootScope.$emit('acmi.filterChanged', {
+                    title: this.title,
+                    theater: this.theater,
+                    missionType: this.missionType,
+                    tags: _.map(this.tags, t => t.text),
+                    pilots: _.map(this.pilots, p => p.text),
+                    hasVideo: this.hasVideo
                 });
             };
             this.applyFilters = _.debounce(debouncedApply, 500);
@@ -51,7 +51,7 @@ angular.module('27th.acmi.filter', [
                     theaterService.get()
                 ])
                 .then(data => {
-                    self.popularTags = data[0];
+                    this.popularTags = data[0];
                     this.theaters = this.theaters.concat(
                         _.map(data[1], t => {
                             return {

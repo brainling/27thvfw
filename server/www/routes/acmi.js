@@ -5,6 +5,8 @@ const Acmi = require('../../common/models/acmi');
 const Joi = require('joi');
 const Boom = require('boom');
 const config = require('../../../config').get('/storage');
+const slug = require('slug');
+const _ = require('lodash');
 
 function acmiQuery(request, count) {
     let query = Acmi.find()
@@ -36,6 +38,10 @@ function acmiQuery(request, count) {
         query.where('pilots').all(request.query.pilots);
     }
 
+    if (request.query.hasVideo) {
+        query.where('videoUrl').exists();
+    }
+
     return query;
 }
 
@@ -52,7 +58,8 @@ module.exports = [
                     theater: Joi.string().max(128).allow(''),
                     missionType: Joi.string().max(64).allow(''),
                     tags: Joi.array().items(Joi.string()).single(),
-                    pilots: Joi.array().items(Joi.string()).single()
+                    pilots: Joi.array().items(Joi.string()).single(),
+                    hasVideo: Joi.boolean()
                 }
             }
         },
@@ -60,6 +67,23 @@ module.exports = [
             acmiQuery(request, false)
                 .exec()
                 .then(acmis => reply(acmis))
+                .catch(err => reply(Boom.badImplementation(err)));
+        }
+    },
+    {
+        path: '/api/acmi/{id}/{slug}',
+        method: 'GET',
+        config: {
+            validate: {
+                params: {
+                    id: Joi.string().required(),
+                    slug: Joi.string().required()
+                }
+            }
+        },
+        handler: (request, reply) => {
+            Acmi.findOne({ _id: request.params.id })
+                .then(acmi => reply(acmi))
                 .catch(err => reply(Boom.badImplementation(err)));
         }
     },
@@ -73,7 +97,8 @@ module.exports = [
                     theater: Joi.string().max(128).allow(''),
                     missionType: Joi.string().max(64).allow(''),
                     tags: Joi.array().items(Joi.string()).single(),
-                    pilots: Joi.array().items(Joi.string()).single()
+                    pilots: Joi.array().items(Joi.string()).single(),
+                    hasVideo: Joi.boolean()
                 }
             }
         },
@@ -96,6 +121,7 @@ module.exports = [
             }
         },
         handler: (request, reply) => {
+            request.payload.slug = slug(request.payload.title, { lower: true });
             Acmi.create(request.payload)
                 .then(acmi => {
                     reply.publishTagUpdates(acmi.tags, () => {

@@ -10,6 +10,7 @@
     "boss": true,
     "esnext": true,
     "shadow": true,
+    "browser": true,
     "globals": {
         "Promise": true,
         "angular": true

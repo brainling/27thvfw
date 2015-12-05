@@ -70,6 +70,16 @@
       "name": "",
       "callsign": "Whisper",
       "pilotId": "A1022"
+    },
+    {
+      "name": "",
+      "callsign": "ViKe",
+      "pilotId": "A1023"
+    },
+    {
+      "name": "",
+      "callsign": "Sandman",
+      "pilotId": "A1024"
     }
   ]
 }

@@ -9,6 +9,8 @@ require('angular-new-router');
 require('ng-tags-input');
 require('ng-file-upload');
 require('angular-truncate-2');
+require('angular-clipboard');
+require('angular-youtube-embed');
 require('templates');
 require('angular-ui-bootstrap');
 
@@ -23,6 +25,7 @@ require('./directives/link-errors');
 require('./directives/loading-panel');
 
 require('./components/acmi');
+require('./components/acmi-details');
 require('./components/upload-acmi');
 require('./components/acmi-filter');
 require('./components/empty-sidebar');
@@ -33,6 +36,7 @@ angular.module('27th.acmi', [
     '27th.acmi.directives.alertContainer',
     '27th.templates',
     '27th.acmi.log',
+    '27th.acmi.details',
     '27th.acmi.upload',
     '27th.acmi.filter',
     '27th.acmi.emptySidebar',
@@ -49,6 +53,15 @@ angular.module('27th.acmi', [
                         'default': 'acmi'
                     },
                     as: 'log'
+                },
+                {
+                    path: '/:id/:slug',
+                    components: {
+                        'topnav': 'topnav',
+                        'sidebar': 'emptySidebar',
+                        'default': 'acmiDetails'
+                    },
+                    as: 'details'
                 },
                 {
                     path: '/upload',

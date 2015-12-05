@@ -5,6 +5,7 @@ const _ = require('lodash');
 angular.module('27th.acmi.log', [
         'ui.bootstrap',
         'truncate',
+        'angular-clipboard',
         '27th.acmi.services.acmi',
         '27th.acmi.services.alert'
     ])

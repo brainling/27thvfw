@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+'use strict';
+
+const Promise = require('bluebird');
+const mongoose = require('mongoose');
+const winston = require('winston');
+const slug = require('slug');
+const moment = require('moment');
+const config = require('../config').get('/');
+const Migration = require('../server/common/models/migration');
+const Acmi = require('../server/common/models/acmi');
+
+winston.level = config.logging.debug ? 'debug' : 'info';
+let connection = mongoose.connect(config.db.mongo.url);
+
+let migrations = [
+    Migration.findOne({ name: 'add_slugs_to_acmi' })
+        .then(migrateAddSlugsToAcmi)
+        .catch(err => {
+            winston.error(err);
+        })
+];
+
+winston.info('Migrating database...');
+Promise.all(migrations)
+    .then(() => {
+        connection.disconnect();
+        winston.info('Migration complete');
+    });
+
+function migrateAddSlugsToAcmi(m) {
+    if (m) {
+        return;
+    }
+
+    return Acmi.find({ slug: { $exists: false } })
+        .then(acmis => {
+            if (!acmis || acmis.length === 0) {
+                winston.info('Found no ACMIs with empty slugs');
+                return addMigration('add_slugs_to_acmi');
+            }
+
+            winston.info('Found %d ACMIs with empty slugs', acmis.length);
+            let updates = [];
+            for (let acmi of acmis) {
+                updates.push(Acmi.update(acmi, { slug: slug(acmi.title, { lower: true }) }));
+            }
+
+            return Promise.all(updates)
+                .then(() => addMigration('add_slugs_to_acmi'))
+                .catch(err => {
+                    winston.error(err);
+                });
+        });
+}
+
+function addMigration(name) {
+    winston.info('Migration complete, recording success');
+    return Migration.create({ name: name });
+}

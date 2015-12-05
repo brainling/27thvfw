@@ -15,27 +15,30 @@ const tasks = [
 
 if(cluster.isMaster) {
     let childTasks = {};
-
-    winston.info('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
-    for(let task of tasks) {
+    const startWorker = function(task) {
         let worker = cluster.fork({
-           task: task
+            task: task
         });
 
         worker.on('message', msg => {
             winston.debug('Worker %s registered for %s', msg.id, msg.task);
             childTasks[msg.id] = msg.task;
         });
+    };
+
+    winston.info('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
+    for(let task of tasks) {
+        startWorker(task);
     }
 
     cluster.on('exit', (worker, code, signal) => {
         if(!worker.suicide) {
             let task = childTasks[worker.id] || 'www';
             winston.warn('worker (%s) died (reason: %s), , restarting...', task, signal || code);
-            cluster.fork({
-                task: task || 'www'
-            });
+            startWorker(task);
         }
+
+        childTasks[worker.id] = undefined;
     });
 }
 else {

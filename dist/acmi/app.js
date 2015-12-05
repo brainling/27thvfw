@@ -1,4 +1,63 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+angular.module('angular-clipboard', [])
+    .directive('clipboard', ['$document', function ($document) {
+        return {
+            restrict: 'A',
+            scope: {
+                onCopied: '&',
+                onError: '&',
+                text: '='
+            },
+            link: function (scope, element) {
+                function createNode(text) {
+                    var node = $document[0].createElement('textarea');
+                    node.style.position = 'absolute';
+                    node.style.left = '-10000px';
+                    node.textContent = text;
+                    return node;
+                }
+
+                function copyNode(node) {
+                    // Set inline style to override css styles
+                    $document[0].body.style.webkitUserSelect = 'initial';
+
+                    var selection = $document[0].getSelection();
+                    selection.removeAllRanges();
+                    node.select();
+
+                    if(!$document[0].execCommand('copy')) {
+                      throw('failure copy');
+                    }
+                    selection.removeAllRanges();
+
+                    // Reset inline style
+                    $document[0].body.style.webkitUserSelect = '';
+                }
+
+                function copyText(text) {
+                    var node = createNode(text);
+                    $document[0].body.appendChild(node);
+                    copyNode(node);
+                    $document[0].body.removeChild(node);
+                }
+
+                element.on('click', function (event) {
+                    try {
+                        copyText(scope.text);
+                        if (angular.isFunction(scope.onCopied)) {
+                            scope.$evalAsync(scope.onCopied());
+                        }
+                    } catch (err) {
+                        if (angular.isFunction(scope.onError)) {
+                            scope.$evalAsync(scope.onError({err: err}));
+                        }
+                    }
+                });
+            }
+        };
+    }]);
+
+},{}],2:[function(require,module,exports){
 'use strict';
 
 /*
@@ -1596,7 +1655,7 @@ function mapObj(obj, fn) {
 return new Grammar();
 }]);
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 angular.module('truncate', [])
     .filter('characters', function () {
         return function (input, chars, breakOnWord) {
@@ -1648,11 +1707,11 @@ angular.module('truncate', [])
         };
     });
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 require('./ui-bootstrap-tpls');
 module.exports = 'ui.bootstrap';
 
-},{"./ui-bootstrap-tpls":4}],4:[function(require,module,exports){
+},{"./ui-bootstrap-tpls":5}],5:[function(require,module,exports){
 /*
  * angular-ui-bootstrap
  * http://angular-ui.github.io/bootstrap/
@@ -10156,7 +10215,260 @@ angular.module("template/typeahead/typeahead-popup.html", []).run(["$templateCac
     "");
 }]);
 !angular.$$csp() && angular.element(document).find('head').prepend('<style type="text/css">.ng-animate.item:not(.left):not(.right){-webkit-transition:0s ease-in-out left;transition:0s ease-in-out left}</style>');
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
+require('./src/angular-youtube-embed');
+module.exports = 'youtube-embed';
+
+},{"./src/angular-youtube-embed":7}],7:[function(require,module,exports){
+/* global YT */
+angular.module('youtube-embed', ['ng'])
+.service ('youtubeEmbedUtils', ['$window', '$rootScope', function ($window, $rootScope) {
+    var Service = {}
+
+    // adapted from http://stackoverflow.com/a/5831191/1614967
+    var youtubeRegexp = /https?:\/\/(?:[0-9A-Z-]+\.)?(?:youtu\.be\/|youtube(?:-nocookie)?\.com\S*[^\w\s-])([\w-]{11})(?=[^\w-]|$)(?![?=&+%\w.-]*(?:['"][^<>]*>|<\/a>))[?=&+%\w.-]*/ig;
+    var timeRegexp = /t=(\d+)[ms]?(\d+)?s?/;
+
+    function contains(str, substr) {
+        return (str.indexOf(substr) > -1);
+    }
+
+    Service.getIdFromURL = function getIdFromURL(url) {
+        var id = url.replace(youtubeRegexp, '$1');
+
+        if (contains(id, ';')) {
+            var pieces = id.split(';');
+
+            if (contains(pieces[1], '%')) {
+                // links like this:
+                // "http://www.youtube.com/attribution_link?a=pxa6goHqzaA&amp;u=%2Fwatch%3Fv%3DdPdgx30w9sU%26feature%3Dshare"
+                // have the real query string URI encoded behind a ';'.
+                // at this point, `id is 'pxa6goHqzaA;u=%2Fwatch%3Fv%3DdPdgx30w9sU%26feature%3Dshare'
+                var uriComponent = decodeURIComponent(pieces[1]);
+                id = ('http://youtube.com' + uriComponent)
+                        .replace(youtubeRegexp, '$1');
+            } else {
+                // https://www.youtube.com/watch?v=VbNF9X1waSc&amp;feature=youtu.be
+                // `id` looks like 'VbNF9X1waSc;feature=youtu.be' currently.
+                // strip the ';feature=youtu.be'
+                id = pieces[0];
+            }
+        } else if (contains(id, '#')) {
+            // id might look like '93LvTKF_jW0#t=1'
+            // and we want '93LvTKF_jW0'
+            id = id.split('#')[0];
+        }
+
+        return id;
+    };
+
+    Service.getTimeFromURL = function getTimeFromURL(url) {
+        url = url || '';
+
+        // t=4m20s
+        // returns ['t=4m20s', '4', '20']
+        // t=46s
+        // returns ['t=46s', '46']
+        // t=46
+        // returns ['t=46', '46']
+        var times = url.match(timeRegexp);
+
+        if (!times) {
+            // zero seconds
+            return 0;
+        }
+
+        // assume the first
+        var full = times[0],
+            minutes = times[1],
+            seconds = times[2];
+
+        // t=4m20s
+        if (typeof seconds !== 'undefined') {
+            seconds = parseInt(seconds, 10);
+            minutes = parseInt(minutes, 10);
+
+        // t=4m
+        } else if (contains(full, 'm')) {
+            minutes = parseInt(minutes, 10);
+            seconds = 0;
+
+        // t=4s
+        // t=4
+        } else {
+            seconds = parseInt(minutes, 10);
+            minutes = 0;
+        }
+
+        // in seconds
+        return seconds + (minutes * 60);
+    };
+
+    Service.ready = false;
+
+    function applyServiceIsReady() {
+        $rootScope.$apply(function () {
+            Service.ready = true;
+        });
+    };
+
+    // If the library isn't here at all,
+    if (typeof YT === "undefined") {
+        // ...grab on to global callback, in case it's eventually loaded
+        $window.onYouTubeIframeAPIReady = applyServiceIsReady;
+    } else if (YT.loaded) {
+        Service.ready = true;
+    } else {
+        YT.ready(applyServiceIsReady);
+    }
+
+    return Service;
+}])
+.directive('youtubeVideo', ['youtubeEmbedUtils', function (youtubeEmbedUtils) {
+    var uniqId = 1;
+
+    // from YT.PlayerState
+    var stateNames = {
+        '-1': 'unstarted',
+        0: 'ended',
+        1: 'playing',
+        2: 'paused',
+        3: 'buffering',
+        5: 'queued'
+    };
+
+    var eventPrefix = 'youtube.player.';
+
+    return {
+        restrict: 'EA',
+        scope: {
+            videoId: '=?',
+            videoUrl: '=?',
+            player: '=?',
+            playerVars: '=?',
+            playerHeight: '=?',
+            playerWidth: '=?'
+        },
+        link: function (scope, element, attrs) {
+            // allows us to $watch `ready`
+            scope.utils = youtubeEmbedUtils;
+
+            // player-id attr > id attr > directive-generated ID
+            var playerId = attrs.playerId || element[0].id || 'unique-youtube-embed-id-' + uniqId++;
+            element[0].id = playerId;
+
+            // Attach to element
+            scope.playerHeight = scope.playerHeight || 390;
+            scope.playerWidth = scope.playerWidth || 640;
+            scope.playerVars = scope.playerVars || {};
+
+            // YT calls callbacks outside of digest cycle
+            function applyBroadcast () {
+                var args = Array.prototype.slice.call(arguments);
+                scope.$apply(function () {
+                    scope.$emit.apply(scope, args);
+                });
+            }
+
+            function onPlayerStateChange (event) {
+                var state = stateNames[event.data];
+                if (typeof state !== 'undefined') {
+                    applyBroadcast(eventPrefix + state, scope.player, event);
+                }
+                scope.$apply(function () {
+                    scope.player.currentState = state;
+                });
+            }
+
+            function onPlayerReady (event) {
+                applyBroadcast(eventPrefix + 'ready', scope.player, event);
+            }
+
+            function onPlayerError (event) {
+                applyBroadcast(eventPrefix + 'error', scope.player, event);
+            }
+
+            function createPlayer () {
+                var playerVars = angular.copy(scope.playerVars);
+                playerVars.start = playerVars.start || scope.urlStartTime;
+                var player = new YT.Player(playerId, {
+                    height: scope.playerHeight,
+                    width: scope.playerWidth,
+                    videoId: scope.videoId,
+                    playerVars: playerVars,
+                    events: {
+                        onReady: onPlayerReady,
+                        onStateChange: onPlayerStateChange,
+                        onError: onPlayerError
+                    }
+                });
+
+                player.id = playerId;
+                return player;
+            }
+
+            function loadPlayer () {
+                if (scope.videoId || scope.playerVars.list) {
+                    if (scope.player && typeof scope.player.destroy === 'function') {
+                        scope.player.destroy();
+                    }
+
+                    scope.player = createPlayer();
+                }
+            };
+
+            var stopWatchingReady = scope.$watch(
+                function () {
+                    return scope.utils.ready
+                        // Wait until one of them is defined...
+                        && (typeof scope.videoUrl !== 'undefined'
+                        ||  typeof scope.videoId !== 'undefined'
+                        ||  typeof scope.playerVars.list !== 'undefined');
+                },
+                function (ready) {
+                    if (ready) {
+                        stopWatchingReady();
+
+                        // URL takes first priority
+                        if (typeof scope.videoUrl !== 'undefined') {
+                            scope.$watch('videoUrl', function (url) {
+                                scope.videoId = scope.utils.getIdFromURL(url);
+                                scope.urlStartTime = scope.utils.getTimeFromURL(url);
+
+                                loadPlayer();
+                            });
+
+                        // then, a video ID
+                        } else if (typeof scope.videoId !== 'undefined') {
+                            scope.$watch('videoId', function () {
+                                scope.urlStartTime = null;
+                                loadPlayer();
+                            });
+
+                        // finally, a list
+                        } else {
+                            scope.$watch('playerVars.list', function () {
+                                scope.urlStartTime = null;
+                                loadPlayer();
+                            });
+                        }
+                    }
+            });
+
+            scope.$watchCollection(['playerHeight', 'playerWidth'], function() {
+                if (scope.player) {
+                    scope.player.setSize(scope.playerWidth, scope.playerHeight);
+                }
+            });
+
+            scope.$on('$destroy', function () {
+                scope.player && scope.player.destroy();
+            });
+        }
+    };
+}]);
+
+},{}],8:[function(require,module,exports){
 /**
  * @license AngularJS v1.4.7
  * (c) 2010-2015 Google, Inc. http://angularjs.org
@@ -39061,11 +39373,11 @@ $provide.value("$locale", {
 })(window, document);
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 require('./angular');
 module.exports = angular;
 
-},{"./angular":5}],7:[function(require,module,exports){
+},{"./angular":8}],10:[function(require,module,exports){
 // This file is autogenerated via the `commonjs` Grunt task. You can require() this file in a CommonJS environment.
 require('../../js/transition.js')
 require('../../js/alert.js')
@@ -39079,7 +39391,7 @@ require('../../js/popover.js')
 require('../../js/scrollspy.js')
 require('../../js/tab.js')
 require('../../js/affix.js')
-},{"../../js/affix.js":8,"../../js/alert.js":9,"../../js/button.js":10,"../../js/carousel.js":11,"../../js/collapse.js":12,"../../js/dropdown.js":13,"../../js/modal.js":14,"../../js/popover.js":15,"../../js/scrollspy.js":16,"../../js/tab.js":17,"../../js/tooltip.js":18,"../../js/transition.js":19}],8:[function(require,module,exports){
+},{"../../js/affix.js":11,"../../js/alert.js":12,"../../js/button.js":13,"../../js/carousel.js":14,"../../js/collapse.js":15,"../../js/dropdown.js":16,"../../js/modal.js":17,"../../js/popover.js":18,"../../js/scrollspy.js":19,"../../js/tab.js":20,"../../js/tooltip.js":21,"../../js/transition.js":22}],11:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: affix.js v3.3.5
  * http://getbootstrap.com/javascript/#affix
@@ -39243,7 +39555,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: alert.js v3.3.5
  * http://getbootstrap.com/javascript/#alerts
@@ -39339,7 +39651,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: button.js v3.3.5
  * http://getbootstrap.com/javascript/#buttons
@@ -39461,7 +39773,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: carousel.js v3.3.5
  * http://getbootstrap.com/javascript/#carousel
@@ -39700,7 +40012,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: collapse.js v3.3.5
  * http://getbootstrap.com/javascript/#collapse
@@ -39913,7 +40225,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: dropdown.js v3.3.5
  * http://getbootstrap.com/javascript/#dropdowns
@@ -40080,7 +40392,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: modal.js v3.3.5
  * http://getbootstrap.com/javascript/#modals
@@ -40419,7 +40731,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: popover.js v3.3.5
  * http://getbootstrap.com/javascript/#popovers
@@ -40529,7 +40841,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.3.5
  * http://getbootstrap.com/javascript/#scrollspy
@@ -40703,7 +41015,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],17:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: tab.js v3.3.5
  * http://getbootstrap.com/javascript/#tabs
@@ -40860,7 +41172,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],18:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: tooltip.js v3.3.5
  * http://getbootstrap.com/javascript/#tooltip
@@ -41376,7 +41688,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: transition.js v3.3.5
  * http://getbootstrap.com/javascript/#transitions
@@ -41437,7 +41749,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],20:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -50649,7 +50961,7 @@ return jQuery;
 
 }));
 
-},{}],21:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -63004,7 +63316,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],22:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /**!
  * AngularJS file upload directives and services. Supoorts: file upload/drop/paste, resume, cancel/abort,
  * progress, resize, thumbnail, preview, validation and CORS
@@ -65421,12 +65733,12 @@ ngFileUpload.service('UploadExif', ['UploadResize', '$q', function (UploadResize
 }]);
 
 
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 require('./dist/ng-file-upload-all');
 module.exports = 'ngFileUpload';
-},{"./dist/ng-file-upload-all":22}],24:[function(require,module,exports){
+},{"./dist/ng-file-upload-all":25}],27:[function(require,module,exports){
 /*! ngTagsInput v3.0.0 License: MIT */!function(){"use strict";var a={backspace:8,tab:9,enter:13,escape:27,space:32,up:38,down:40,left:37,right:39,"delete":46,comma:188},b=9007199254740991,c=["text","email","url"],d=angular.module("ngTagsInput",[]);d.directive("tagsInput",["$timeout","$document","$window","tagsInputConfig","tiUtil",function(d,e,f,g,h){function i(a,b,c,d){var e,f,g,i={};return e=function(b){return h.safeToString(b[a.displayProperty])},f=function(b,c){b[a.displayProperty]=c},g=function(b){var d=e(b);return d&&d.length>=a.minLength&&d.length<=a.maxLength&&a.allowedTagsPattern.test(d)&&!h.findInObjectArray(i.items,b,a.keyProperty||a.displayProperty)&&c({$tag:b})},i.items=[],i.addText=function(a){var b={};return f(b,a),i.add(b)},i.add=function(c){var d=e(c);return a.replaceSpacesWithDashes&&(d=h.replaceSpacesWithDashes(d)),f(c,d),g(c)?(i.items.push(c),b.trigger("tag-added",{$tag:c})):d&&b.trigger("invalid-tag",{$tag:c}),c},i.remove=function(a){var c=i.items[a];return d({$tag:c})?(i.items.splice(a,1),i.clearSelection(),b.trigger("tag-removed",{$tag:c}),c):void 0},i.select=function(a){0>a?a=i.items.length-1:a>=i.items.length&&(a=0),i.index=a,i.selected=i.items[a]},i.selectPrior=function(){i.select(--i.index)},i.selectNext=function(){i.select(++i.index)},i.removeSelected=function(){return i.remove(i.index)},i.clearSelection=function(){i.selected=null,i.index=-1},i.clearSelection(),i}function j(a){return-1!==c.indexOf(a)}return{restrict:"E",require:"ngModel",scope:{tags:"=ngModel",text:"=?",onTagAdding:"&",onTagAdded:"&",onInvalidTag:"&",onTagRemoving:"&",onTagRemoved:"&",onTagClicked:"&"},replace:!1,transclude:!0,templateUrl:"ngTagsInput/tags-input.html",controller:["$scope","$attrs","$element",function(a,c,d){a.events=h.simplePubSub(),g.load("tagsInput",a,c,{template:[String,"ngTagsInput/tag-item.html"],type:[String,"text",j],placeholder:[String,"Add a tag"],tabindex:[Number,null],removeTagSymbol:[String,String.fromCharCode(215)],replaceSpacesWithDashes:[Boolean,!0],minLength:[Number,3],maxLength:[Number,b],addOnEnter:[Boolean,!0],addOnSpace:[Boolean,!1],addOnComma:[Boolean,!0],addOnBlur:[Boolean,!0],addOnPaste:[Boolean,!1],pasteSplitPattern:[RegExp,/,/],allowedTagsPattern:[RegExp,/.+/],enableEditingLastTag:[Boolean,!1],minTags:[Number,0],maxTags:[Number,b],displayProperty:[String,"text"],keyProperty:[String,""],allowLeftoverText:[Boolean,!1],addFromAutocompleteOnly:[Boolean,!1],spellcheck:[Boolean,!0]}),a.tagList=new i(a.options,a.events,h.handleUndefinedResult(a.onTagAdding,!0),h.handleUndefinedResult(a.onTagRemoving,!0)),this.registerAutocomplete=function(){var b=d.find("input");return{addTag:function(b){return a.tagList.add(b)},focusInput:function(){b[0].focus()},getTags:function(){return a.tagList.items},getCurrentTagText:function(){return a.newTag.text()},getOptions:function(){return a.options},on:function(b,c){return a.events.on(b,c),this}}},this.registerTagItem=function(){return{getOptions:function(){return a.options},removeTag:function(b){a.disabled||a.tagList.remove(b)}}}}],link:function(b,c,g,i){var j,k=[a.enter,a.comma,a.space,a.backspace,a["delete"],a.left,a.right],l=b.tagList,m=b.events,n=b.options,o=c.find("input"),p=["minTags","maxTags","allowLeftoverText"];j=function(){i.$setValidity("maxTags",l.items.length<=n.maxTags),i.$setValidity("minTags",l.items.length>=n.minTags),i.$setValidity("leftoverText",b.hasFocus||n.allowLeftoverText?!0:!b.newTag.text())},i.$isEmpty=function(a){return!a||!a.length},b.newTag={text:function(a){return angular.isDefined(a)?(b.text=a,void m.trigger("input-change",a)):b.text||""},invalid:null},b.track=function(a){return a[n.keyProperty||n.displayProperty]},b.$watch("tags",function(a){a?(l.items=h.makeObjectArray(a,n.displayProperty),b.tags=l.items):l.items=[]}),b.$watch("tags.length",function(){j(),i.$validate()}),g.$observe("disabled",function(a){b.disabled=a}),b.eventHandlers={input:{keydown:function(a){m.trigger("input-keydown",a)},focus:function(){b.hasFocus||(b.hasFocus=!0,m.trigger("input-focus"))},blur:function(){d(function(){var a=e.prop("activeElement"),d=a===o[0],f=c[0].contains(a);(d||!f)&&(b.hasFocus=!1,m.trigger("input-blur"))})},paste:function(a){a.getTextData=function(){var b=a.clipboardData||a.originalEvent&&a.originalEvent.clipboardData;return b?b.getData("text/plain"):f.clipboardData.getData("Text")},m.trigger("input-paste",a)}},host:{click:function(){b.disabled||o[0].focus()}},tag:{click:function(a){m.trigger("tag-clicked",{$tag:a})}}},m.on("tag-added",b.onTagAdded).on("invalid-tag",b.onInvalidTag).on("tag-removed",b.onTagRemoved).on("tag-clicked",b.onTagClicked).on("tag-added",function(){b.newTag.text("")}).on("tag-added tag-removed",function(){b.tags=l.items,i.$setDirty()}).on("invalid-tag",function(){b.newTag.invalid=!0}).on("option-change",function(a){-1!==p.indexOf(a.name)&&j()}).on("input-change",function(){l.clearSelection(),b.newTag.invalid=null}).on("input-focus",function(){c.triggerHandler("focus"),i.$setValidity("leftoverText",!0)}).on("input-blur",function(){n.addOnBlur&&!n.addFromAutocompleteOnly&&l.addText(b.newTag.text()),c.triggerHandler("blur"),j()}).on("input-keydown",function(c){var d,e,f,g,i=c.keyCode,j={};if(!h.isModifierOn(c)&&-1!==k.indexOf(i)){if(j[a.enter]=n.addOnEnter,j[a.comma]=n.addOnComma,j[a.space]=n.addOnSpace,d=!n.addFromAutocompleteOnly&&j[i],e=(i===a.backspace||i===a["delete"])&&l.selected,g=i===a.backspace&&0===b.newTag.text().length&&n.enableEditingLastTag,f=(i===a.backspace||i===a.left||i===a.right)&&0===b.newTag.text().length&&!n.enableEditingLastTag,d)l.addText(b.newTag.text());else if(g){var m;l.selectPrior(),m=l.removeSelected(),m&&b.newTag.text(m[n.displayProperty])}else e?l.removeSelected():f&&(i===a.left||i===a.backspace?l.selectPrior():i===a.right&&l.selectNext());(d||f||e||g)&&c.preventDefault()}}).on("input-paste",function(a){if(n.addOnPaste){var b=a.getTextData(),c=b.split(n.pasteSplitPattern);c.length>1&&(c.forEach(function(a){l.addText(a)}),a.preventDefault())}})}}}]),d.directive("tiTagItem",["tiUtil",function(a){return{restrict:"E",require:"^tagsInput",template:'<ng-include src="$$template"></ng-include>',scope:{data:"="},link:function(b,c,d,e){var f=e.registerTagItem(),g=f.getOptions();b.$$template=g.template,b.$$removeTagSymbol=g.removeTagSymbol,b.$getDisplayText=function(){return a.safeToString(b.data[g.displayProperty])},b.$removeTag=function(){f.removeTag(b.$index)},b.$watch("$parent.$index",function(a){b.$index=a})}}}]),d.directive("autoComplete",["$document","$timeout","$sce","$q","tagsInputConfig","tiUtil",function(b,c,d,e,f,g){function h(a,b,c){var d,f,h,i={};return h=function(){return b.tagsInput.keyProperty||b.tagsInput.displayProperty},d=function(a,c){return a.filter(function(a){return!g.findInObjectArray(c,a,h(),function(a,c){return b.tagsInput.replaceSpacesWithDashes&&(a=g.replaceSpacesWithDashes(a),c=g.replaceSpacesWithDashes(c)),g.defaultComparer(a,c)})})},i.reset=function(){f=null,i.items=[],i.visible=!1,i.index=-1,i.selected=null,i.query=null},i.show=function(){b.selectFirstMatch?i.select(0):i.selected=null,i.visible=!0},i.load=g.debounce(function(c,j){i.query=c;var k=e.when(a({$query:c}));f=k,k.then(function(a){k===f&&(a=g.makeObjectArray(a.data||a,h()),a=d(a,j),i.items=a.slice(0,b.maxResultsToShow),i.items.length>0?i.show():i.reset())})},b.debounceDelay),i.selectNext=function(){i.select(++i.index)},i.selectPrior=function(){i.select(--i.index)},i.select=function(a){0>a?a=i.items.length-1:a>=i.items.length&&(a=0),i.index=a,i.selected=i.items[a],c.trigger("suggestion-selected",a)},i.reset(),i}function i(a,b){var c=a.find("li").eq(b),d=c.parent(),e=c.prop("offsetTop"),f=c.prop("offsetHeight"),g=d.prop("clientHeight"),h=d.prop("scrollTop");h>e?d.prop("scrollTop",e):e+f>g+h&&d.prop("scrollTop",e+f-g)}return{restrict:"E",require:"^tagsInput",scope:{source:"&"},templateUrl:"ngTagsInput/auto-complete.html",controller:["$scope","$element","$attrs",function(a,b,c){a.events=g.simplePubSub(),f.load("autoComplete",a,c,{template:[String,"ngTagsInput/auto-complete-match.html"],debounceDelay:[Number,100],minLength:[Number,3],highlightMatchedText:[Boolean,!0],maxResultsToShow:[Number,10],loadOnDownArrow:[Boolean,!1],loadOnEmpty:[Boolean,!1],loadOnFocus:[Boolean,!1],selectFirstMatch:[Boolean,!0],displayProperty:[String,""]}),a.suggestionList=new h(a.source,a.options,a.events),this.registerAutocompleteMatch=function(){return{getOptions:function(){return a.options},getQuery:function(){return a.suggestionList.query}}}}],link:function(b,c,d,e){var f,h=[a.enter,a.tab,a.escape,a.up,a.down],j=b.suggestionList,k=e.registerAutocomplete(),l=b.options,m=b.events;l.tagsInput=k.getOptions(),f=function(a){return a&&a.length>=l.minLength||!a&&l.loadOnEmpty},b.addSuggestionByIndex=function(a){j.select(a),b.addSuggestion()},b.addSuggestion=function(){var a=!1;return j.selected&&(k.addTag(angular.copy(j.selected)),j.reset(),k.focusInput(),a=!0),a},b.track=function(a){return a[l.tagsInput.keyProperty||l.tagsInput.displayProperty]},k.on("tag-added tag-removed invalid-tag input-blur",function(){j.reset()}).on("input-change",function(a){f(a)?j.load(a,k.getTags()):j.reset()}).on("input-focus",function(){var a=k.getCurrentTagText();l.loadOnFocus&&f(a)&&j.load(a,k.getTags())}).on("input-keydown",function(c){var d=c.keyCode,e=!1;if(!g.isModifierOn(c)&&-1!==h.indexOf(d))return j.visible?d===a.down?(j.selectNext(),e=!0):d===a.up?(j.selectPrior(),e=!0):d===a.escape?(j.reset(),e=!0):(d===a.enter||d===a.tab)&&(e=b.addSuggestion()):d===a.down&&b.options.loadOnDownArrow&&(j.load(k.getCurrentTagText(),k.getTags()),e=!0),e?(c.preventDefault(),c.stopImmediatePropagation(),!1):void 0}),m.on("suggestion-selected",function(a){i(c,a)})}}}]),d.directive("tiAutocompleteMatch",["$sce","tiUtil",function(a,b){return{restrict:"E",require:"^autoComplete",template:'<ng-include src="$$template"></ng-include>',scope:{data:"="},link:function(c,d,e,f){var g=f.registerAutocompleteMatch(),h=g.getOptions();c.$$template=h.template,c.$index=c.$parent.$index,c.$highlight=function(c){return h.highlightMatchedText&&(c=b.safeHighlight(c,g.getQuery())),a.trustAsHtml(c)},c.$getDisplayText=function(){return b.safeToString(c.data[h.displayProperty||h.tagsInput.displayProperty])}}}}]),d.directive("tiTranscludeAppend",function(){return function(a,b,c,d,e){e(function(a){b.append(a)})}}),d.directive("tiAutosize",["tagsInputConfig",function(a){return{restrict:"A",require:"ngModel",link:function(b,c,d,e){var f,g,h=a.getTextAutosizeThreshold();f=angular.element('<span class="input"></span>'),f.css("display","none").css("visibility","hidden").css("width","auto").css("white-space","pre"),c.parent().append(f),g=function(a){var b,e=a;return angular.isString(e)&&0===e.length&&(e=d.placeholder),e&&(f.text(e),f.css("display",""),b=f.prop("offsetWidth"),f.css("display","none")),c.css("width",b?b+h+"px":""),a},e.$parsers.unshift(g),e.$formatters.unshift(g),d.$observe("placeholder",function(a){e.$modelValue||g(a)})}}}]),d.directive("tiBindAttrs",function(){return function(a,b,c){a.$watch(c.tiBindAttrs,function(a){angular.forEach(a,function(a,b){c.$set(b,a)})},!0)}}),d.provider("tagsInputConfig",function(){var a={},b={},c=3;this.setDefaults=function(b,c){return a[b]=c,this},this.setActiveInterpolation=function(a,c){return b[a]=c,this},this.setTextAutosizeThreshold=function(a){return c=a,this},this.$get=["$interpolate",function(d){var e={};return e[String]=function(a){return a},e[Number]=function(a){return parseInt(a,10)},e[Boolean]=function(a){return"true"===a.toLowerCase()},e[RegExp]=function(a){return new RegExp(a)},{load:function(c,f,g,h){var i=function(){return!0};f.options={},angular.forEach(h,function(h,j){var k,l,m,n,o,p;k=h[0],l=h[1],m=h[2]||i,n=e[k],o=function(){var b=a[c]&&a[c][j];return angular.isDefined(b)?b:l},p=function(a){f.options[j]=a&&m(a)?n(a):o()},b[c]&&b[c][j]?g.$observe(j,function(a){p(a),f.events.trigger("option-change",{name:j,newValue:a})}):p(g[j]&&d(g[j])(f.$parent))})},getTextAutosizeThreshold:function(){return c}}}]}),d.factory("tiUtil",["$timeout",function(a){var b={};return b.debounce=function(b,c){var d;return function(){var e=arguments;a.cancel(d),d=a(function(){b.apply(null,e)},c)}},b.makeObjectArray=function(a,b){if(!angular.isArray(a)||0===a.length||angular.isObject(a[0]))return a;var c=[];return a.forEach(function(a){var d={};d[b]=a,c.push(d)}),c},b.findInObjectArray=function(a,c,d,e){var f=null;return e=e||b.defaultComparer,a.some(function(a){return e(a[d],c[d])?(f=a,!0):void 0}),f},b.defaultComparer=function(a,c){return b.safeToString(a).toLowerCase()===b.safeToString(c).toLowerCase()},b.safeHighlight=function(a,c){function d(a){return a.replace(/([.?*+^$[\]\\(){}|-])/g,"\\$1")}if(!c)return a;a=b.encodeHTML(a),c=b.encodeHTML(c);var e=new RegExp("&[^;]+;|"+d(c),"gi");return a.replace(e,function(a){return a.toLowerCase()===c.toLowerCase()?"<em>"+a+"</em>":a})},b.safeToString=function(a){return angular.isUndefined(a)||null==a?"":a.toString().trim()},b.encodeHTML=function(a){return b.safeToString(a).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")},b.handleUndefinedResult=function(a,b){return function(){var c=a.apply(null,arguments);return angular.isUndefined(c)?b:c}},b.replaceSpacesWithDashes=function(a){return b.safeToString(a).replace(/\s/g,"-")},b.isModifierOn=function(a){return a.shiftKey||a.ctrlKey||a.altKey||a.metaKey},b.simplePubSub=function(){var a={};return{on:function(b,c){return b.split(" ").forEach(function(b){a[b]||(a[b]=[]),a[b].push(c)}),this},trigger:function(c,d){var e=a[c]||[];return e.every(function(a){return b.handleUndefinedResult(a,!0)(d)}),this}}},b}]),d.run(["$templateCache",function(a){a.put("ngTagsInput/tags-input.html",'<div class="host" tabindex="-1" ng-click="eventHandlers.host.click()" ti-transclude-append><div class="tags" ng-class="{focused: hasFocus}"><ul class="tag-list"><li class="tag-item" ng-repeat="tag in tagList.items track by track(tag)" ng-class="{ selected: tag == tagList.selected }" ng-click="eventHandlers.tag.click(tag)"><ti-tag-item data="::tag"></ti-tag-item></li></ul><input class="input" autocomplete="off" ng-model="newTag.text" ng-model-options="{getterSetter: true}" ng-keydown="eventHandlers.input.keydown($event)" ng-focus="eventHandlers.input.focus($event)" ng-blur="eventHandlers.input.blur($event)" ng-paste="eventHandlers.input.paste($event)" ng-trim="false" ng-class="{\'invalid-tag\': newTag.invalid}" ng-disabled="disabled" ti-bind-attrs="{type: options.type, placeholder: options.placeholder, tabindex: options.tabindex, spellcheck: options.spellcheck}" ti-autosize></div></div>'),a.put("ngTagsInput/tag-item.html",'<span ng-bind="$getDisplayText()"></span> <a class="remove-button" ng-click="$removeTag()" ng-bind="::$$removeTagSymbol"></a>'),a.put("ngTagsInput/auto-complete.html",'<div class="autocomplete" ng-if="suggestionList.visible"><ul class="suggestion-list"><li class="suggestion-item" ng-repeat="item in suggestionList.items track by track(item)" ng-class="{selected: item == suggestionList.selected}" ng-click="addSuggestionByIndex($index)" ng-mouseenter="suggestionList.select($index)"><ti-autocomplete-match data="::item"></ti-autocomplete-match></li></ul></div>'),a.put("ngTagsInput/auto-complete-match.html",'<span ng-bind-html="$highlight($getDisplayText())"></span>')}])}();
-},{}],25:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function (global){
 
 var rng;
@@ -65461,7 +65773,7 @@ module.exports = rng;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 //     uuid.js
 //
 //     Copyright (c) 2010-2012 Robert Kieffer
@@ -65646,7 +65958,7 @@ uuid.unparse = unparse;
 
 module.exports = uuid;
 
-},{"./rng":25}],27:[function(require,module,exports){
+},{"./rng":28}],30:[function(require,module,exports){
 /* globals window */
 'use strict';
 
@@ -65660,6 +65972,8 @@ require('angular-new-router');
 require('ng-tags-input');
 require('ng-file-upload');
 require('angular-truncate-2');
+require('angular-clipboard');
+require('angular-youtube-embed');
 require('templates');
 require('angular-ui-bootstrap');
 
@@ -65674,12 +65988,13 @@ require('./directives/link-errors');
 require('./directives/loading-panel');
 
 require('./components/acmi');
+require('./components/acmi-details');
 require('./components/upload-acmi');
 require('./components/acmi-filter');
 require('./components/empty-sidebar');
 require('./components/topnav');
 
-angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer', '27th.templates', '27th.acmi.log', '27th.acmi.upload', '27th.acmi.filter', '27th.acmi.emptySidebar', '27th.acmi.topnav']).controller('AppController', (function () {
+angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer', '27th.templates', '27th.acmi.log', '27th.acmi.details', '27th.acmi.upload', '27th.acmi.filter', '27th.acmi.emptySidebar', '27th.acmi.topnav']).controller('AppController', (function () {
     function _class($router) {
         _classCallCheck(this, _class);
 
@@ -65691,6 +66006,14 @@ angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer
                 'default': 'acmi'
             },
             as: 'log'
+        }, {
+            path: '/:id/:slug',
+            components: {
+                'topnav': 'topnav',
+                'sidebar': 'emptySidebar',
+                'default': 'acmiDetails'
+            },
+            as: 'details'
         }, {
             path: '/upload',
             components: {
@@ -65705,7 +66028,32 @@ angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer
     return _class;
 })());
 
-},{"./components/acmi":29,"./components/acmi-filter":28,"./components/empty-sidebar":30,"./components/topnav":31,"./components/upload-acmi":32,"./directives/alert-container":33,"./directives/link-errors":34,"./directives/loading-panel":35,"./services/acmi-service":36,"./services/alert-service":37,"./services/pilot-service":39,"./services/tag-service":40,"./services/theater-service":41,"angular":6,"angular-new-router":1,"angular-truncate-2":2,"angular-ui-bootstrap":3,"bootstrap":7,"jquery":20,"ng-file-upload":23,"ng-tags-input":24,"templates":"templates"}],28:[function(require,module,exports){
+},{"./components/acmi":33,"./components/acmi-details":31,"./components/acmi-filter":32,"./components/empty-sidebar":34,"./components/topnav":35,"./components/upload-acmi":36,"./directives/alert-container":37,"./directives/link-errors":38,"./directives/loading-panel":39,"./services/acmi-service":40,"./services/alert-service":41,"./services/pilot-service":43,"./services/tag-service":44,"./services/theater-service":45,"angular":9,"angular-clipboard":1,"angular-new-router":2,"angular-truncate-2":3,"angular-ui-bootstrap":4,"angular-youtube-embed":6,"bootstrap":10,"jquery":23,"ng-file-upload":26,"ng-tags-input":27,"templates":"templates"}],31:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.acmi.details', ['ngNewRouter', 'youtube-embed', '27th.acmi.services.acmi']).controller('AcmiDetailsController', (function () {
+    function _class($routeParams, acmiService) {
+        var _this = this;
+
+        _classCallCheck(this, _class);
+
+        this.id = $routeParams.id;
+        this.slug = $routeParams.slug;
+        this.loading = true;
+        this.acmi = {};
+
+        acmiService.getDetails(this.id, this.slug).then(function (acmi) {
+            _this.loading = false;
+            _this.acmi = acmi;
+        });
+    }
+
+    return _class;
+})());
+
+},{}],32:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -65720,8 +66068,6 @@ angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '2
 
         _classCallCheck(this, _class);
 
-        var self = this;
-
         this.$rootScope = $rootScope;
         this.pilotService = pilotService;
         this.tagService = tagService;
@@ -65729,6 +66075,7 @@ angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '2
         this.tags = [];
         this.pilots = [];
         this.popularTags = [];
+        this.hasVideo = false;
         this.theater = null;
         this.theaters = [{
             name: '<Any Theater>',
@@ -65741,22 +66088,23 @@ angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '2
         }].concat(acmiService.getMissionTypes());
 
         var debouncedApply = function debouncedApply() {
-            self.$rootScope.$emit('acmi.filterChanged', {
-                title: self.title,
-                theater: self.theater,
-                missionType: self.missionType,
-                tags: _.map(self.tags, function (t) {
+            _this.$rootScope.$emit('acmi.filterChanged', {
+                title: _this.title,
+                theater: _this.theater,
+                missionType: _this.missionType,
+                tags: _.map(_this.tags, function (t) {
                     return t.text;
                 }),
-                pilots: _.map(self.pilots, function (p) {
+                pilots: _.map(_this.pilots, function (p) {
                     return p.text;
-                })
+                }),
+                hasVideo: _this.hasVideo
             });
         };
         this.applyFilters = _.debounce(debouncedApply, 500);
 
         $q.all([tagService.get(null, 10), theaterService.get()]).then(function (data) {
-            self.popularTags = data[0];
+            _this.popularTags = data[0];
             _this.theaters = _this.theaters.concat(_.map(data[1], function (t) {
                 return {
                     name: t.name,
@@ -65781,7 +66129,7 @@ angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '2
     return _class;
 })());
 
-},{"lodash":21}],29:[function(require,module,exports){
+},{"lodash":24}],33:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -65790,7 +66138,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _ = require('lodash');
 
-angular.module('27th.acmi.log', ['ui.bootstrap', 'truncate', '27th.acmi.services.acmi', '27th.acmi.services.alert']).controller('AcmiController', (function () {
+angular.module('27th.acmi.log', ['ui.bootstrap', 'truncate', 'angular-clipboard', '27th.acmi.services.acmi', '27th.acmi.services.alert']).controller('AcmiController', (function () {
     function _class($rootScope, acmiService, alertService) {
         _classCallCheck(this, _class);
 
@@ -65838,7 +66186,7 @@ angular.module('27th.acmi.log', ['ui.bootstrap', 'truncate', '27th.acmi.services
     return _class;
 })());
 
-},{"lodash":21}],30:[function(require,module,exports){
+},{"lodash":24}],34:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -65851,7 +66199,7 @@ angular.module('27th.acmi.emptySidebar', []).controller('EmptySidebarController'
     return _class;
 })());
 
-},{}],31:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -65864,7 +66212,7 @@ angular.module('27th.acmi.topnav', []).controller('TopnavController', (function 
     return _class;
 })());
 
-},{}],32:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -65876,6 +66224,8 @@ var uuid = require('uuid');
 
 angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '27th.acmi.services.pilot', '27th.acmi.services.tag', '27th.acmi.services.theater', '27th.acmi.directives.linkErrors', '27th.acmi.directives.loadingPanel']).controller('UploadAcmiController', (function () {
     function _class($location, $q, acmiService, pilotService, tagService, theaterService, alertService, Upload) {
+        var _this = this;
+
         _classCallCheck(this, _class);
 
         this.$location = $location;
@@ -65892,7 +66242,8 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
             missionType: 'Campaign',
             tags: [],
             pilots: [],
-            files: []
+            files: [],
+            slug: 'new-acmi'
         };
         this.file = null;
         this.uploading = false;
@@ -65901,11 +66252,10 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
         this.theaters = [];
         this.missionTypes = acmiService.getMissionTypes();
 
-        var self = this;
         $q.all([theaterService.get(), acmiService.getPolicy()]).then(function (data) {
-            self.theaters = data[0];
-            self.policy = data[1];
-            self.loading = false;
+            _this.theaters = data[0];
+            _this.policy = data[1];
+            _this.loading = false;
         }).catch(function (err) {
             alertService.error(err);
         });
@@ -65914,10 +66264,9 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
     _createClass(_class, [{
         key: 'uploadAcmi',
         value: function uploadAcmi() {
-            var _this = this;
+            var _this2 = this;
 
             var acmi = angular.copy(this.acmi);
-            var self = this;
 
             acmi.tags = _.map(acmi.tags, function (t) {
                 return t.text;
@@ -65950,22 +66299,22 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
             });
 
             activeUpload.then(function (resp) {
-                _this.acmiService.upload(acmi).then(function () {
-                    self.uploading = false;
-                    self.uploadProgress = 0;
+                _this2.acmiService.upload(acmi).then(function () {
+                    _this2.uploading = false;
+                    _this2.uploadProgress = 0;
 
-                    self.$location.path('/');
-                    self.alertService.success('ACMI uploaded!');
+                    _this2.$location.path('/');
+                    _this2.alertService.success('ACMI uploaded!');
                 }).catch(function (err) {
-                    self.uploading = false;
-                    self.uploadProgress = 0;
+                    _this2.uploading = false;
+                    _this2.uploadProgress = 0;
 
-                    self.alertService.error('Could not upload ACMI: ' + err.message);
+                    _this2.alertService.error('Could not upload ACMI: ' + err.message);
                 });
             }, function (err) {
-                self.alertService.error(err);
+                _this2.alertService.error(err);
             }, function (evt) {
-                self.uploadProgress = parseInt(100.0 * evt.loaded / evt.total);
+                _this2.uploadProgress = parseInt(100.0 * evt.loaded / evt.total);
             });
         }
     }, {
@@ -65983,7 +66332,7 @@ angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '
     return _class;
 })());
 
-},{"lodash":21,"uuid":26}],33:[function(require,module,exports){
+},{"lodash":24,"uuid":29}],37:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66022,7 +66371,7 @@ angular.module('27th.acmi.directives.alertContainer', ['27th.acmi.services.alert
     };
 });
 
-},{}],34:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 angular.module('27th.acmi.directives.linkErrors', []).directive('linkErrors', function () {
@@ -66039,7 +66388,7 @@ angular.module('27th.acmi.directives.linkErrors', []).directive('linkErrors', fu
     };
 });
 
-},{}],35:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
@@ -66056,7 +66405,7 @@ angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel'
     };
 });
 
-},{}],36:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66095,6 +66444,8 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
                             var file = item.files[0];
                             return 'https://' + file.bucket + '.s3-us-west-2.amazonaws.com/acmis/' + file.key + '/' + file.file;
                         };
+
+                        item.detailsLink = window.location.toString() + item._id + '/' + item.slug;
                     };
 
                     for (var _iterator = data[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
@@ -66114,6 +66465,18 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
                         }
                     }
                 }
+
+                return data;
+            });
+        }
+    }, {
+        key: 'getDetails',
+        value: function getDetails(id, slug) {
+            return this.getAsync('/api/acmi/' + id + '/' + slug, null, function (data) {
+                data.downloadPath = function () {
+                    var file = data.files[0];
+                    return 'https://' + file.bucket + '.s3-us-west-2.amazonaws.com/acmis/' + file.key + '/' + file.file;
+                };
 
                 return data;
             });
@@ -66152,7 +66515,7 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
     return _class;
 })(base));
 
-},{"./fetch-service-base":38,"lodash":21}],37:[function(require,module,exports){
+},{"./fetch-service-base":42,"lodash":24}],41:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66189,7 +66552,7 @@ angular.module('27th.acmi.services.alert', []).service('alertService', (function
     return _class;
 })());
 
-},{}],38:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66237,7 +66600,7 @@ module.exports = (function () {
     return _class;
 })();
 
-},{}],39:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66271,7 +66634,7 @@ angular.module('27th.acmi.services.pilot', []).service('pilotService', (function
     return _class;
 })(base));
 
-},{"./fetch-service-base":38}],40:[function(require,module,exports){
+},{"./fetch-service-base":42}],44:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66308,7 +66671,7 @@ angular.module('27th.acmi.services.tag', []).service('tagService', (function (_b
     return _class;
 })(base));
 
-},{"./fetch-service-base":38}],41:[function(require,module,exports){
+},{"./fetch-service-base":42}],45:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66339,18 +66702,19 @@ angular.module('27th.acmi.services.theater', []).service('theaterService', (func
     return _class;
 })(base));
 
-},{"./fetch-service-base":38}],"templates":[function(require,module,exports){
+},{"./fetch-service-base":42}],"templates":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.templates", []).run(["$templateCache", function ($templateCache) {
+  $templateCache.put("./topnav/topnav.html", "<nav class=\"navbar navbar-inverse navbar-fixed-top\"><div class=\"container-fluid\"><div class=\"navbar-header\"><button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a href=\"/acmi\" class=\"navbar-brand\">ACMI Log</a></div><div id=\"navbar\" class=\"navbar-collapse collapse\"><ul class=\"nav navbar-nav\"><li><a ng-link=\"upload\">Upload</a></li></ul></div></div></nav>");
   $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
   $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
-  $templateCache.put("./topnav/topnav.html", "<nav class=\"navbar navbar-inverse navbar-fixed-top\"><div class=\"container-fluid\"><div class=\"navbar-header\"><button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a href=\"/acmi\" class=\"navbar-brand\">ACMI Log</a></div><div id=\"navbar\" class=\"navbar-collapse collapse\"><ul class=\"nav navbar-nav\"><li><a ng-link=\"upload\">Upload</a></li></ul></div></div></nav>");
-  $templateCache.put("./components/acmi/acmi.html", "\n<div ng-controller=\"AcmiController as vm\" class=\"acmi-details\">\n  <div ng-repeat=\"acmi in vm.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"{{ acmi.downloadPath() }}\" download=\"download\" class=\"pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row summary-row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5>{{ acmi.details | characters: 250 }}\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row-top\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Theater</span><span class=\"mission-details\">{{ acmi.theater }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"tag-header\">Mission Type</span><span class=\"mission-details\">{{ acmi.missionType }}</span></div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"vm.currentPage\" total-items=\"vm.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"vm.pageChanged()\"></uib-pagination>\n</nav>");
-  $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div ng-controller=\"AcmiFilterController as vm\">\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"vm.applyFilters()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.tags\" placeholder=\"Tags\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"vm.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"vm.applyFilters()\" on-tag-removed=\"vm.applyFilters()\">\n        <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"theater\" ng-model=\"vm.theater\" ng-change=\"vm.applyFilters()\" ng-options=\"theater.value as theater.name for theater in vm.theaters\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"mission-type\" ng-model=\"vm.missionType\" ng-change=\"vm.applyFilters()\" ng-options=\"type.value as type.name for type in vm.missionTypes\" class=\"form-control\"></select>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ vm.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
-  $templateCache.put("./components/topnav/topnav.html", "\n<nav ng-controller=\"TopnavController as vm\" class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
+  $templateCache.put("./components/acmi/acmi.html", "\n<div class=\"acmi-details\">\n  <div ng-repeat=\"acmi in acmi.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"{{ acmi.downloadPath() }}\" download=\"download\" uib-tooltip=\"Download\" tooltip-popup-delay=\"750\" class=\"download-link pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a><a clipboard=\"clipboard\" text=\"acmi.detailsLink\" uib-tooltip=\"Copy Link\" tooltip-popup-delay=\"750\" class=\"copy-details-link pull-right\"><i class=\"glyphicon glyphicon-link\"></i></a><a ng-link=\"details({ id: acmi._id, slug: acmi.slug })\" uib-tooltip=\"Details\" tooltip-popup-delay=\"750\" class=\"details-link pull-right\"><i class=\"glyphicon glyphicon-list\"></i></a><a href=\"{{ acmi.videoUrl }}\" ng-hide=\"!acmi.videoUrl\" uib-tooltip=\"YouTube Video\" tooltip-popup-delay=\"750\" class=\"video-link pull-right\"><i class=\"glyphicon glyphicon-film\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row summary-row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5>{{ acmi.details | characters: 250 }}\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row-top\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Theater</span><span class=\"mission-details\">{{ acmi.theater }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"tag-header\">Mission Type</span><span class=\"mission-details\">{{ acmi.missionType }}</span></div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"acmi.currentPage\" total-items=\"acmi.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"acmi.pageChanged()\"></uib-pagination>\n</nav>");
+  $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div>\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"acmiFilter.applyFilters()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.tags\" placeholder=\"Tags\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"theater\" ng-model=\"acmiFilter.theater\" ng-change=\"acmiFilter.applyFilters()\" placeholder=\"Theater\" ng-options=\"theater.value as theater.name for theater in acmiFilter.theaters\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"mission-type\" ng-model=\"acmiFilter.missionType\" ng-change=\"acmiFilter.applyFilters()\" ng-options=\"type.value as type.name for type in acmiFilter.missionTypes\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <div class=\"checkbox\">\n        <label>\n          <input type=\"checkbox\" ng-model=\"acmiFilter.hasVideo\" ng-change=\"acmiFilter.applyFilters()\"/>Has Video\n        </label>\n      </div>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ acmiFilter.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
-  $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div ng-controller=\"UploadAcmiController as vm\">\n  <loading-panel loading=\"vm.loading\">\n    <form name=\"uploadForm\" class=\"form\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-9\">\n            <label for=\"title\">Title</label>\n            <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"vm.acmi.title\" ng-disabled=\"vm.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n          </div>\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-3\">\n            <label for=\"mission-type\">Mission Type</label>\n            <select id=\"mission-type\" ng-model=\"vm.acmi.missionType\" ng-options=\"type.value as type.name for type in vm.missionTypes\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"file\">File</label>\n            <input id=\"file\" type=\"file\" ng-model=\"vm.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"vm.uploading\" class=\"form-control\"/>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"mission-type\">Theater</label>\n            <select id=\"theater\" ng-model=\"vm.acmi.theater\" ng-options=\"theater.name as theater.name for theater in vm.theaters\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"tags\">Tags</label>\n            <tags-input id=\"tags\" ng-model=\"vm.acmi.tags\" placeh=\"placeh\" older=\"Tags\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadTags($query)\" min-length=\"1\"></auto-complete>\n            </tags-input>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"pilots\">Pilots</label>\n            <tags-input id=\"pilots\" ng-model=\"vm.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"add-from-autocomplete-only\" ng-disabled=\"vm.uploading\" ng-required=\"true\">\n              <auto-complete source=\"vm.loadPilots($query)\" min-length=\"2\"></auto-complete>\n            </tags-input>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"details\">Details</label>\n            <textarea id=\"details\" name=\"details\" ng-model=\"vm.acmi.details\" ng-disabled=\"vm.uploading\" ng-maxlength=\"2048\" class=\"form-control\"></textarea>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"col-sm-12\">\n            <button type=\"submit\" ng-click=\"vm.uploadAcmi()\" ng-disabled=\"vm.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n          </div>\n        </div>\n      </div>\n    </form>\n    <div ng-hide=\"!vm.uploading\" class=\"well\">\n      <h5>Uploading ACMI...</h5>\n      <uib-progressbar animate=\"false\" value=\"vm.uploadProgress\"></uib-progressbar>\n    </div>\n  </loading-panel>\n</div>");
+  $templateCache.put("./components/acmi-details/acmi-details.html", "\n<loading-panel loading=\"acmiDetails.loading\">\n  <div class=\"container-fluid\">\n    <div class=\"row\">\n      <div class=\"col-sm-10\">\n        <h3>{{ acmiDetails.acmi.title }}</h3>\n      </div>\n      <div class=\"col-sm-2\"><a href=\"{{ acmiDetails.acmi.downloadPath() }}\" download=\"download\" uib-tooltip=\"Download\" tooltip-popup-delay=\"750\" role=\"button\" class=\"download-btn btn-info btn-sm pull-right\">Download</a></div>\n    </div>\n    <div class=\"row\">\n      <div class=\"col-sm-6\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Info</div>\n          <table class=\"table table-condensed\">\n            <tbody>\n              <tr>\n                <td width=\"30%\">Tags</td>\n                <td>{{ acmiDetails.acmi.tags.join(\', \') }}</td>\n              </tr>\n              <tr>\n                <td>Uploaded</td>\n                <td>{{ acmiDetails.acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n      </div>\n      <div class=\"col-sm-6\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Pilots</div>\n          <table class=\"table table-condensed\">\n            <tbody>\n              <tr ng-repeat=\"pilot in acmiDetails.acmi.pilots\">\n                <td>{{ pilot }}</td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n      </div>\n    </div>\n    <div class=\"row\">\n      <div class=\"col-sm-12\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Details</div>\n          <div class=\"panel-body\">\n            <p class=\"details-text\">{{ acmiDetails.acmi.details }}</p>\n          </div>\n        </div>\n      </div>\n    </div>\n    <div ng-hide=\"!acmiDetails.acmi.videoUrl\" class=\"row\">\n      <div class=\"col-sm-12\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">YouTube Video</div>\n          <div class=\"panel-body\">\n            <youtube-video video-url=\"acmiDetails.acmi.videoUrl\"></youtube-video>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</loading-panel>");
+  $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
+  $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div>\n  <loading-panel loading=\"uploadAcmi.loading\">\n    <form name=\"uploadForm\" class=\"form\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-9\">\n            <label for=\"title\">Title</label>\n            <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"uploadAcmi.acmi.title\" ng-disabled=\"uploadAcmi.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n          </div>\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-3\">\n            <label for=\"mission-type\">Mission Type</label>\n            <select id=\"mission-type\" ng-model=\"uploadAcmi.acmi.missionType\" ng-options=\"type.value as type.name for type in uploadAcmi.missionTypes\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"file\">File</label>\n            <input id=\"file\" type=\"file\" ng-model=\"uploadAcmi.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"uploadAcmi.uploading\" class=\"form-control\"/>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"mission-type\">Theater</label>\n            <select id=\"theater\" ng-model=\"uploadAcmi.acmi.theater\" ng-options=\"theater.name as theater.name for theater in uploadAcmi.theaters\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"tags\">Tags</label>\n            <tags-input id=\"tags\" ng-model=\"uploadAcmi.acmi.tags\" placeholder=\"Tags\" ng-disabled=\"uploadAcmi.uploading\" ng-required=\"true\">\n              <auto-complete source=\"uploadAcmi.loadTags($query)\" min-length=\"1\"></auto-complete>\n            </tags-input>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"pilots\">Pilots</label>\n            <tags-input id=\"pilots\" ng-model=\"uploadAcmi.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" ng-disabled=\"uploadAcmi.uploading\" ng-required=\"true\">\n              <auto-complete source=\"uploadAcmi.loadPilots($query)\" min-length=\"2\"></auto-complete>\n            </tags-input>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"video\">YouTube Video</label>\n            <input id=\"video\" type=\"text\" name=\"video\" ng-model=\"uploadAcmi.acmi.videoUrl\" ng-disabled=\"uploadAcmi.uploading\" ng-max-length=\"512\" ng-required=\"false\" class=\"form-control\"/>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"details\">Details</label>\n            <textarea id=\"details\" name=\"details\" ng-model=\"uploadAcmi.acmi.details\" ng-disabled=\"uploadAcmi.uploading\" ng-maxlength=\"2048\" ng-required=\"true\" class=\"form-control\"></textarea>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"col-sm-12\">\n            <button type=\"submit\" ng-click=\"uploadAcmi.uploadAcmi()\" ng-disabled=\"uploadAcmi.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n          </div>\n        </div>\n      </div>\n    </form>\n    <div ng-hide=\"!uploadAcmi.uploading\" class=\"well\">\n      <h5>Uploading ACMI...</h5>\n      <uib-progressbar animate=\"false\" value=\"uploadAcmi.uploadProgress\"></uib-progressbar>\n    </div>\n  </loading-panel>\n</div>");
 }]);
 
-},{}]},{},[27]);
+},{}]},{},[30]);

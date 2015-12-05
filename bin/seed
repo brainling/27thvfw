@@ -4,11 +4,14 @@
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
+const winston = require('winston');
 const mongoose = require('mongoose');
-const config = require('../config').get('/db');
+const config = require('../config').get('/');
 
-mongoose.connect(config.mongo.url);
+winston.level = config.logging.debug ? 'debug' : 'info';
+let connection = mongoose.connect(config.db.mongo.url);
 
+winston.info('Seeding database...');
 let seedDir = path.join(__dirname, '../seeds');
 fs.readdirAsync(seedDir)
     .then(files => {
@@ -20,11 +23,11 @@ fs.readdirAsync(seedDir)
         return Promise.all(tasks);
     })
     .then(() => {
-        console.log('Seeding complete');
-        process.exit(0);
+        winston.info('Seeding complete');
+        connection.disconnect();
     })
     .catch(err => {
-        console.log(err);
+        winston.error(err);
     });
 
 function seedData(file) {
@@ -41,7 +44,7 @@ function seedData(file) {
                 }
 
                 let model = require(path.join(__dirname, '../server/common/models/' + modelName));
-                console.log('Loaded model: ' + modelName);
+                winston.debug('Loaded model: ' + modelName);
 
                 var loads = [];
                 for(var item of data) {
@@ -57,7 +60,7 @@ function seedData(file) {
                 return Promise.all(loads);
             })
             .then(() => {
-                console.log('Done seeding ' + file);
+                winston.info('Done seeding ' + file);
                 resolve();
             })
             .catch(err => {
