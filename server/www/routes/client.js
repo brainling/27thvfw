@@ -41,5 +41,21 @@ module.exports = [
                 return path.join('node_modules/bootstrap/fonts', request.params.filename);
             }
         }
+    },
+    {
+        method: 'GET',
+        path: '/training',
+        handler: {
+            file: production ? 'dist/training/index.min.html' : 'dist/training/index.html'
+        }
+    },
+    {
+        method: 'GET',
+        path: '/training/{filename}',
+        handler: {
+            file: request => {
+                return path.join('dist/training', request.params.filename);
+            }
+        }
     }
 ];

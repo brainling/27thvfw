@@ -34,7 +34,7 @@ require('./components/topnav');
 angular.module('27th.acmi', [
     'ngNewRouter',
     '27th.acmi.directives.alertContainer',
-    '27th.templates',
+    '27th.acmi.templates',
     '27th.acmi.log',
     '27th.acmi.details',
     '27th.acmi.upload',

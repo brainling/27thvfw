@@ -1,11 +1,11 @@
 {
   "name": "27thvfw",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "repository": "https://github.com/brainling/27thfvw",
   "engines": {
-    "node": ">=5.0.0",
-    "npm": ">=3.3.0"
+    "node": ">=5.1.0",
+    "npm": ">=3.5.0"
   },
   "scripts": {
     "start": "node ./bin/server",
