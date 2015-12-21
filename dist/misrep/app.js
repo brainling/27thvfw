@@ -50598,69 +50598,6 @@ return jQuery;
 }));
 
 },{}],20:[function(require,module,exports){
-/* globals window */
-'use strict';
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-window.$ = window.jQuery = require('jquery');
-require('bootstrap');
-
-require('angular');
-require('angular-new-router');
-require('angular-ui-bootstrap');
-require('templates');
-require('templates-common');
-
-require('../../common/client');
-require('./components/dashboard');
-require('./components/topnav');
-
-angular.module('27th.admin', ['ngNewRouter', '27th.common.templates', '27th.admin.templates', '27th.common.emptySidebar', '27th.admin.topnav', '27th.admin.dashboard']).controller('AppController', (function () {
-    function _class($router) {
-        _classCallCheck(this, _class);
-
-        $router.config([{
-            path: '/',
-            components: {
-                'topnav': 'topnav',
-                'sidebar': 'emptySidebar',
-                'default': 'dashboard'
-            },
-            as: 'dashboard'
-        }]);
-    }
-
-    return _class;
-})());
-
-},{"../../common/client":"common","./components/dashboard":21,"./components/topnav":22,"angular":5,"angular-new-router":1,"angular-ui-bootstrap":2,"bootstrap":6,"jquery":19,"templates":"templates","templates-common":"templates-common"}],21:[function(require,module,exports){
-'use strict';
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-angular.module('27th.admin.dashboard', []).controller('DashboardController', (function () {
-    function _class() {
-        _classCallCheck(this, _class);
-    }
-
-    return _class;
-})());
-
-},{}],22:[function(require,module,exports){
-'use strict';
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-angular.module('27th.admin.topnav', []).controller('TopnavController', (function () {
-    function _class() {
-        _classCallCheck(this, _class);
-    }
-
-    return _class;
-})());
-
-},{}],23:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -50673,7 +50610,7 @@ angular.module('27th.common.emptySidebar', []).controller('EmptySidebarControlle
     return _class;
 })());
 
-},{}],24:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -50712,7 +50649,7 @@ angular.module('27th.common.directives.alertContainer', ['27th.common.services.a
     };
 });
 
-},{}],25:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
 
 angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', function () {
@@ -50729,7 +50666,7 @@ angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', 
     };
 });
 
-},{}],26:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 'use strict';
 
 angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
@@ -50746,7 +50683,7 @@ angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel'
     };
 });
 
-},{}],27:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -50783,6 +50720,70 @@ angular.module('27th.common.services.alert', []).service('alertService', (functi
     return _class;
 })());
 
+},{}],25:[function(require,module,exports){
+/* globals window */
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+window.$ = window.jQuery = require('jquery');
+require('bootstrap');
+
+require('angular');
+require('angular-new-router');
+require('angular-ui-bootstrap');
+
+require('templates');
+require('templates-common');
+require('common');
+
+require('./components/topnav');
+require('./components/record-flight');
+
+angular.module('27th.misrep', ['ngNewRouter', '27th.common.templates', '27th.misrep.templates', '27th.common.emptySidebar', '27th.common.directives.alertContainer', '27th.misrep.topnav', '27th.misrep.recordFlight']).controller('AppController', (function () {
+    function _class($router) {
+        _classCallCheck(this, _class);
+
+        $router.config([{
+            path: '/',
+            components: {
+                'topnav': 'topnav',
+                'sidebar': 'emptySidebar',
+                'default': 'recordFlight'
+            },
+            as: 'recordFlight'
+        }]);
+    }
+
+    return _class;
+})());
+
+},{"./components/record-flight":26,"./components/topnav":27,"angular":5,"angular-new-router":1,"angular-ui-bootstrap":2,"bootstrap":6,"common":"common","jquery":19,"templates":"templates","templates-common":"templates-common"}],26:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.misrep.recordFlight', []).controller('RecordFlightController', (function () {
+    function _class() {
+        _classCallCheck(this, _class);
+    }
+
+    return _class;
+})());
+
+},{}],27:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.misrep.topnav', []).controller('TopnavController', (function () {
+    function _class() {
+        _classCallCheck(this, _class);
+    }
+
+    return _class;
+})());
+
 },{}],"common":[function(require,module,exports){
 'use strict';
 
@@ -50794,7 +50795,7 @@ require('./directives/link-errors');
 
 require('./services/alert-service');
 
-},{"./components/empty-sidebar":23,"./directives/alert-container":24,"./directives/link-errors":25,"./directives/loading-panel":26,"./services/alert-service":27}],"templates-common":[function(require,module,exports){
+},{"./components/empty-sidebar":20,"./directives/alert-container":21,"./directives/link-errors":22,"./directives/loading-panel":23,"./services/alert-service":24}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
@@ -50807,9 +50808,9 @@ angular.module("27th.common.templates", []).run(["$templateCache", function ($te
 },{}],"templates":[function(require,module,exports){
 "use strict";
 
-angular.module("27th.admin.templates", []).run(["$templateCache", function ($templateCache) {
-  $templateCache.put("./components/dashboard/dashboard.html", "");
-  $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"dashboard\" class=\"navbar-brand\">Admin</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\"></div>\n  </div>\n</nav>");
+angular.module("27th.misrep.templates", []).run(["$templateCache", function ($templateCache) {
+  $templateCache.put("./components/record-flight/record-flight.html", "\n<div></div>");
+  $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">Misrep</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\"></ul>\n    </div>\n  </div>\n</nav>");
 }]);
 
-},{}]},{},[20]);
+},{}]},{},[25]);

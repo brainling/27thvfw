@@ -3,6 +3,27 @@
 const path = require('path');
 const production = process.env.NODE_ENV === 'production';
 
+function clientRoutes(client) {
+    return [
+        {
+            method: 'GET',
+            path: `/${client}`,
+            handler: {
+                file: production ? `dist/${client}/index.min.html` : `dist/${client}/index.html`
+            }
+        },
+        {
+            method: 'GET',
+            path: `/${client}/{filename}`,
+            handler: {
+                file: request => {
+                    return path.join(`dist/${client}`, request.params.filename);
+                }
+            }
+        }
+    ];
+}
+
 module.exports = [
     {
         method: 'GET',
@@ -13,49 +34,15 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/acmi',
-        //config: {
-        //    cors: {
-        //        origin: [ '*' ],
-        //        headers: [ 'Content-Type' ]
-        //    }
-        //},
-        handler: {
-            file: production ? 'dist/acmi/index.min.html' : 'dist/acmi/index.html'
-        }
-    },
-    {
-        method: 'GET',
-        path: '/acmi/{filename}',
-        handler: {
-            file: request => {
-                return path.join('dist/acmi', request.params.filename);
-            }
-        }
-    },
-    {
-        method: 'GET',
         path: '/fonts/{filename}',
         handler: {
             file: request => {
                 return path.join('node_modules/bootstrap/fonts', request.params.filename);
             }
         }
-    },
-    {
-        method: 'GET',
-        path: '/training',
-        handler: {
-            file: production ? 'dist/training/index.min.html' : 'dist/training/index.html'
-        }
-    },
-    {
-        method: 'GET',
-        path: '/training/{filename}',
-        handler: {
-            file: request => {
-                return path.join('dist/training', request.params.filename);
-            }
-        }
     }
-];
+]
+    .concat(clientRoutes('acmi'),
+        clientRoutes('misrep'),
+        clientRoutes('training'),
+        clientRoutes('admin'));

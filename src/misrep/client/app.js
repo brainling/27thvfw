@@ -13,16 +13,17 @@ require('templates-common');
 require('common');
 
 require('./components/topnav');
-require('./components/dashboard');
+require('./components/record-flight');
 
-angular.module('27th.training', [
-    'ngNewRouter',
-    '27th.common.templates',
-    '27th.training.templates',
-    '27th.common.emptySidebar',
-    '27th.training.topnav',
-    '27th.training.dashboard'
-])
+angular.module('27th.misrep', [
+        'ngNewRouter',
+        '27th.common.templates',
+        '27th.misrep.templates',
+        '27th.common.emptySidebar',
+        '27th.common.directives.alertContainer',
+        '27th.misrep.topnav',
+        '27th.misrep.recordFlight'
+    ])
     .controller('AppController', class {
         constructor($router) {
             $router.config([
@@ -31,9 +32,9 @@ angular.module('27th.training', [
                     components: {
                         'topnav': 'topnav',
                         'sidebar': 'emptySidebar',
-                        'default': 'dashboard'
+                        'default': 'recordFlight'
                     },
-                    as: 'dashboard'
+                    as: 'recordFlight'
                 }
             ]);
         }

@@ -66702,10 +66702,131 @@ angular.module('27th.acmi.services.theater', []).service('theaterService', (func
     return _class;
 })(base));
 
-},{"./fetch-service-base":42}],"templates-common":[function(require,module,exports){
+},{"./fetch-service-base":42}],46:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.emptySidebar', []).controller('EmptySidebarController', (function () {
+    function _class() {
+        _classCallCheck(this, _class);
+    }
+
+    return _class;
+})());
+
+},{}],47:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.directives.alertContainer', ['27th.common.services.alert']).directive('alertContainer', function () {
+    return {
+        restrict: 'E',
+        templateUrl: './directives/alert-container.html',
+        controllerAs: 'vm',
+        controller: (function () {
+            function controller($rootScope, alertService) {
+                _classCallCheck(this, controller);
+
+                var self = this;
+                this.alertService = alertService;
+                this.alert = null;
+
+                $rootScope.$on('alerts.new', function () {
+                    if (!self.alert) {
+                        self.alert = alertService.nextAlert();
+                    }
+                });
+            }
+
+            _createClass(controller, [{
+                key: 'dismissAlert',
+                value: function dismissAlert() {
+                    this.alert = this.alertService.nextAlert();
+                }
+            }]);
+
+            return controller;
+        })()
+    };
+});
+
+},{}],48:[function(require,module,exports){
+'use strict';
+
+angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', function () {
+    return {
+        restrict: 'A',
+        require: '^form',
+        link: function link(scope, el, attrs, formControl) {
+            var input = angular.element(el[0].querySelector('[name]'));
+            var name = input.attr('name');
+            input.bind('blur', function () {
+                el.toggleClass('has-error', formControl[name].$invalid);
+            });
+        }
+    };
+});
+
+},{}],49:[function(require,module,exports){
+arguments[4][39][0].apply(exports,arguments)
+},{"dup":39}],50:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.services.alert', []).service('alertService', (function () {
+    function _class($rootScope) {
+        _classCallCheck(this, _class);
+
+        this.alerts = [];
+        this.$rootScope = $rootScope;
+    }
+
+    _createClass(_class, [{
+        key: 'success',
+        value: function success(msg) {
+            this.alerts.push({ type: 'success', message: msg });
+            this.$rootScope.$emit('alerts.new');
+        }
+    }, {
+        key: 'error',
+        value: function error(msg) {
+            this.alerts.push({ type: 'error', message: msg });
+            this.$rootScope.$emit('alerts.new');
+        }
+    }, {
+        key: 'nextAlert',
+        value: function nextAlert() {
+            return this.alerts.pop();
+        }
+    }]);
+
+    return _class;
+})());
+
+},{}],"common":[function(require,module,exports){
+'use strict';
+
+require('./components/empty-sidebar');
+
+require('./directives/alert-container');
+require('./directives/loading-panel');
+require('./directives/link-errors');
+
+require('./services/alert-service');
+
+},{"./components/empty-sidebar":46,"./directives/alert-container":47,"./directives/link-errors":48,"./directives/loading-panel":49,"./services/alert-service":50}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
+  $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
+  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
   $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
 }]);

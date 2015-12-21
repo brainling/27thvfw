@@ -24,7 +24,6 @@ class Server {
             port: 5000
         });
 
-        let self = this;
         this.server.register([
             require('inert'),
             require('./plugins/queues')
@@ -35,11 +34,13 @@ class Server {
 
             mongoose.connect(config.db.mongo.url);
 
-            self.server.route(require('./routes/acmi'));
-            self.server.route(require('./routes/pilots'));
-            self.server.route(require('./routes/tags'));
-            self.server.route(require('./routes/theaters'));
-            self.server.route(require('./routes/client'));
+            this.server.route(require('./routes/acmi'));
+            this.server.route(require('./routes/pilots'));
+            this.server.route(require('./routes/tags'));
+            this.server.route(require('./routes/theaters'));
+
+            let clients = require('./routes/client');
+            this.server.route(clients);
 
             ready();
         });

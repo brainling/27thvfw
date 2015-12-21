@@ -60,6 +60,7 @@ module.exports = function(name) {
         browserify(`src/${name}/client/app.js`)
             .require(`./build/${name}/templates.js`, { expose: 'templates' })
             .require('./build/common/templates.js', { expose: 'templates-common' })
+            .require('./src/common/client/index.js', { expose: 'common' })
             .transform('babelify', { presets: [ 'es2015' ] })
             .bundle()
             .pipe(gulp.if(argv.production, source('app.min.js'), source('app.js')))
