@@ -6,11 +6,12 @@ const uuid = require('uuid');
 angular.module('27th.acmi.upload', [
         'ngFileUpload',
         '27th.acmi.services.acmi',
-        '27th.acmi.services.pilot',
+        '27th.common.services.pilot',
         '27th.acmi.services.tag',
-        '27th.acmi.services.theater',
-        '27th.acmi.directives.linkErrors',
-        '27th.acmi.directives.loadingPanel'
+        '27th.common.services.theater',
+        '27th.common.services.alert',
+        '27th.common.directives.linkErrors',
+        '27th.common.directives.loadingPanel'
     ])
     .controller('UploadAcmiController', class {
         constructor($location, $q, acmiService, pilotService, tagService, theaterService, alertService, Upload) {

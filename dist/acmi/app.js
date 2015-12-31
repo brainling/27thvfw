@@ -65974,18 +65974,14 @@ require('ng-file-upload');
 require('angular-truncate-2');
 require('angular-clipboard');
 require('angular-youtube-embed');
-require('templates');
 require('angular-ui-bootstrap');
 
-require('./services/alert-service');
-require('./services/acmi-service');
-require('./services/pilot-service');
-require('./services/tag-service');
-require('./services/theater-service');
+require('templates');
+require('templates-common');
+require('common');
 
-require('./directives/alert-container');
-require('./directives/link-errors');
-require('./directives/loading-panel');
+require('./services/acmi-service');
+require('./services/tag-service');
 
 require('./components/acmi');
 require('./components/acmi-details');
@@ -65994,7 +65990,7 @@ require('./components/acmi-filter');
 require('./components/empty-sidebar');
 require('./components/topnav');
 
-angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer', '27th.acmi.templates', '27th.acmi.log', '27th.acmi.details', '27th.acmi.upload', '27th.acmi.filter', '27th.acmi.emptySidebar', '27th.acmi.topnav']).controller('AppController', (function () {
+angular.module('27th.acmi', ['ngNewRouter', '27th.common.templates', '27th.common.directives.alertContainer', '27th.acmi.templates', '27th.acmi.log', '27th.acmi.details', '27th.acmi.upload', '27th.acmi.filter', '27th.acmi.emptySidebar', '27th.acmi.topnav']).controller('AppController', (function () {
     function _class($router) {
         _classCallCheck(this, _class);
 
@@ -66028,7 +66024,7 @@ angular.module('27th.acmi', ['ngNewRouter', '27th.acmi.directives.alertContainer
     return _class;
 })());
 
-},{"./components/acmi":33,"./components/acmi-details":31,"./components/acmi-filter":32,"./components/empty-sidebar":34,"./components/topnav":35,"./components/upload-acmi":36,"./directives/alert-container":37,"./directives/link-errors":38,"./directives/loading-panel":39,"./services/acmi-service":40,"./services/alert-service":41,"./services/pilot-service":43,"./services/tag-service":44,"./services/theater-service":45,"angular":9,"angular-clipboard":1,"angular-new-router":2,"angular-truncate-2":3,"angular-ui-bootstrap":4,"angular-youtube-embed":6,"bootstrap":10,"jquery":23,"ng-file-upload":26,"ng-tags-input":27,"templates":"templates"}],31:[function(require,module,exports){
+},{"./components/acmi":33,"./components/acmi-details":31,"./components/acmi-filter":32,"./components/empty-sidebar":34,"./components/topnav":35,"./components/upload-acmi":36,"./services/acmi-service":37,"./services/tag-service":38,"angular":9,"angular-clipboard":1,"angular-new-router":2,"angular-truncate-2":3,"angular-ui-bootstrap":4,"angular-youtube-embed":6,"bootstrap":10,"common":"common","jquery":23,"ng-file-upload":26,"ng-tags-input":27,"templates":"templates","templates-common":"templates-common"}],31:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -66062,7 +66058,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _ = require('lodash');
 
-angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '27th.acmi.services.pilot', '27th.acmi.services.tag', '27th.acmi.services.theater']).controller('AcmiFilterController', (function () {
+angular.module('27th.acmi.filter', ['ngTagsInput', '27th.acmi.services.acmi', '27th.common.services.pilot', '27th.acmi.services.tag', '27th.common.services.theater']).controller('AcmiFilterController', (function () {
     function _class($rootScope, $q, acmiService, pilotService, tagService, theaterService) {
         var _this = this;
 
@@ -66138,7 +66134,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _ = require('lodash');
 
-angular.module('27th.acmi.log', ['ui.bootstrap', 'truncate', 'angular-clipboard', '27th.acmi.services.acmi', '27th.acmi.services.alert']).controller('AcmiController', (function () {
+angular.module('27th.acmi.log', ['ui.bootstrap', 'truncate', 'angular-clipboard', '27th.acmi.services.acmi', '27th.common.services.alert']).controller('AcmiController', (function () {
     function _class($rootScope, acmiService, alertService) {
         _classCallCheck(this, _class);
 
@@ -66222,7 +66218,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var _ = require('lodash');
 var uuid = require('uuid');
 
-angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '27th.acmi.services.pilot', '27th.acmi.services.tag', '27th.acmi.services.theater', '27th.acmi.directives.linkErrors', '27th.acmi.directives.loadingPanel']).controller('UploadAcmiController', (function () {
+angular.module('27th.acmi.upload', ['ngFileUpload', '27th.acmi.services.acmi', '27th.common.services.pilot', '27th.acmi.services.tag', '27th.common.services.theater', '27th.common.services.alert', '27th.common.directives.linkErrors', '27th.common.directives.loadingPanel']).controller('UploadAcmiController', (function () {
     function _class($location, $q, acmiService, pilotService, tagService, theaterService, alertService, Upload) {
         var _this = this;
 
@@ -66339,85 +66335,12 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module('27th.acmi.directives.alertContainer', ['27th.acmi.services.alert']).directive('alertContainer', function () {
-    return {
-        restrict: 'E',
-        templateUrl: './directives/alert-container.html',
-        controllerAs: 'vm',
-        controller: (function () {
-            function controller($rootScope, alertService) {
-                _classCallCheck(this, controller);
-
-                var self = this;
-                this.alertService = alertService;
-                this.alert = null;
-
-                $rootScope.$on('alerts.new', function () {
-                    if (!self.alert) {
-                        self.alert = alertService.nextAlert();
-                    }
-                });
-            }
-
-            _createClass(controller, [{
-                key: 'dismissAlert',
-                value: function dismissAlert() {
-                    this.alert = this.alertService.nextAlert();
-                }
-            }]);
-
-            return controller;
-        })()
-    };
-});
-
-},{}],38:[function(require,module,exports){
-'use strict';
-
-angular.module('27th.acmi.directives.linkErrors', []).directive('linkErrors', function () {
-    return {
-        restrict: 'A',
-        require: '^form',
-        link: function link(scope, el, attrs, formControl) {
-            var input = angular.element(el[0].querySelector('[name]'));
-            var name = input.attr('name');
-            input.bind('blur', function () {
-                el.toggleClass('has-error', formControl[name].$invalid);
-            });
-        }
-    };
-});
-
-},{}],39:[function(require,module,exports){
-'use strict';
-
-angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
-    return {
-        restrict: 'E',
-        transclude: true,
-        scope: {
-            loading: '=',
-            opaque: '@'
-        },
-        templateUrl: './directives/loading-panel.html',
-        controllerAs: 'vm',
-        controller: function controller() {}
-    };
-});
-
-},{}],40:[function(require,module,exports){
-'use strict';
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _ = require('lodash');
-var base = require('./fetch-service-base');
+var base = require('common').FetchServiceBase;
 
 angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (_base) {
     _inherits(_class, _base);
@@ -66515,14 +66438,137 @@ angular.module('27th.acmi.services.acmi', []).service('acmiService', (function (
     return _class;
 })(base));
 
-},{"./fetch-service-base":42,"lodash":24}],41:[function(require,module,exports){
+},{"common":"common","lodash":24}],38:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module('27th.acmi.services.alert', []).service('alertService', (function () {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var base = require('common').FetchServiceBase;
+angular.module('27th.acmi.services.tag', []).service('tagService', (function (_base) {
+    _inherits(_class, _base);
+
+    function _class($http, $q) {
+        _classCallCheck(this, _class);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
+    }
+
+    _createClass(_class, [{
+        key: 'get',
+        value: function get(query) {
+            var top = arguments.length <= 1 || arguments[1] === undefined ? 5 : arguments[1];
+
+            query = query || '';
+            return this.getAsync('/api/tags/auto-complete', {
+                query: query.trim(),
+                top: top
+            });
+        }
+    }]);
+
+    return _class;
+})(base));
+
+},{"common":"common"}],39:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.emptySidebar', []).controller('EmptySidebarController', (function () {
+    function _class() {
+        _classCallCheck(this, _class);
+    }
+
+    return _class;
+})());
+
+},{}],40:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.directives.alertContainer', ['27th.common.services.alert']).directive('alertContainer', function () {
+    return {
+        restrict: 'E',
+        templateUrl: './directives/alert-container.html',
+        controllerAs: 'vm',
+        controller: (function () {
+            function controller($rootScope, alertService) {
+                _classCallCheck(this, controller);
+
+                var self = this;
+                this.alertService = alertService;
+                this.alert = null;
+
+                $rootScope.$on('alerts.new', function () {
+                    if (!self.alert) {
+                        self.alert = alertService.nextAlert();
+                    }
+                });
+            }
+
+            _createClass(controller, [{
+                key: 'dismissAlert',
+                value: function dismissAlert() {
+                    this.alert = this.alertService.nextAlert();
+                }
+            }]);
+
+            return controller;
+        })()
+    };
+});
+
+},{}],41:[function(require,module,exports){
+'use strict';
+
+angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', function () {
+    return {
+        restrict: 'A',
+        require: '^form',
+        link: function link(scope, el, attrs, formControl) {
+            var input = angular.element(el[0].querySelector('[name]'));
+            var name = input.attr('name');
+            input.bind('blur', function () {
+                el.toggleClass('has-error', formControl[name].$invalid);
+            });
+        }
+    };
+});
+
+},{}],42:[function(require,module,exports){
+'use strict';
+
+angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
+    return {
+        restrict: 'E',
+        transclude: true,
+        scope: {
+            loading: '=',
+            opaque: '@'
+        },
+        templateUrl: './directives/loading-panel.html',
+        controllerAs: 'vm',
+        controller: function controller() {}
+    };
+});
+
+},{}],43:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.services.alert', []).service('alertService', (function () {
     function _class($rootScope) {
         _classCallCheck(this, _class);
 
@@ -66552,7 +66598,20 @@ angular.module('27th.acmi.services.alert', []).service('alertService', (function
     return _class;
 })());
 
-},{}],42:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.services.enjin', []).service('enjinService', (function () {
+    function _class() {
+        _classCallCheck(this, _class);
+    }
+
+    return _class;
+})());
+
+},{}],45:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66600,7 +66659,7 @@ module.exports = (function () {
     return _class;
 })();
 
-},{}],43:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66612,7 +66671,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var base = require('./fetch-service-base');
-angular.module('27th.acmi.services.pilot', []).service('pilotService', (function (_base) {
+angular.module('27th.common.services.pilot', []).service('pilotService', (function (_base) {
     _inherits(_class, _base);
 
     function _class($http, $q) {
@@ -66634,7 +66693,7 @@ angular.module('27th.acmi.services.pilot', []).service('pilotService', (function
     return _class;
 })(base));
 
-},{"./fetch-service-base":42}],44:[function(require,module,exports){
+},{"./fetch-service-base":45}],47:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66646,44 +66705,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var base = require('./fetch-service-base');
-angular.module('27th.acmi.services.tag', []).service('tagService', (function (_base) {
-    _inherits(_class, _base);
-
-    function _class($http, $q) {
-        _classCallCheck(this, _class);
-
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
-    }
-
-    _createClass(_class, [{
-        key: 'get',
-        value: function get(query) {
-            var top = arguments.length <= 1 || arguments[1] === undefined ? 5 : arguments[1];
-
-            query = query || '';
-            return this.getAsync('/api/tags/auto-complete', {
-                query: query.trim(),
-                top: top
-            });
-        }
-    }]);
-
-    return _class;
-})(base));
-
-},{"./fetch-service-base":42}],45:[function(require,module,exports){
-'use strict';
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var base = require('./fetch-service-base');
-angular.module('27th.acmi.services.theater', []).service('theaterService', (function (_base) {
+angular.module('27th.common.services.theater', []).service('theaterService', (function (_base) {
     _inherits(_class, _base);
 
     function _class($http, $q) {
@@ -66702,115 +66724,7 @@ angular.module('27th.acmi.services.theater', []).service('theaterService', (func
     return _class;
 })(base));
 
-},{"./fetch-service-base":42}],46:[function(require,module,exports){
-'use strict';
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-angular.module('27th.common.emptySidebar', []).controller('EmptySidebarController', (function () {
-    function _class() {
-        _classCallCheck(this, _class);
-    }
-
-    return _class;
-})());
-
-},{}],47:[function(require,module,exports){
-'use strict';
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-angular.module('27th.common.directives.alertContainer', ['27th.common.services.alert']).directive('alertContainer', function () {
-    return {
-        restrict: 'E',
-        templateUrl: './directives/alert-container.html',
-        controllerAs: 'vm',
-        controller: (function () {
-            function controller($rootScope, alertService) {
-                _classCallCheck(this, controller);
-
-                var self = this;
-                this.alertService = alertService;
-                this.alert = null;
-
-                $rootScope.$on('alerts.new', function () {
-                    if (!self.alert) {
-                        self.alert = alertService.nextAlert();
-                    }
-                });
-            }
-
-            _createClass(controller, [{
-                key: 'dismissAlert',
-                value: function dismissAlert() {
-                    this.alert = this.alertService.nextAlert();
-                }
-            }]);
-
-            return controller;
-        })()
-    };
-});
-
-},{}],48:[function(require,module,exports){
-'use strict';
-
-angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', function () {
-    return {
-        restrict: 'A',
-        require: '^form',
-        link: function link(scope, el, attrs, formControl) {
-            var input = angular.element(el[0].querySelector('[name]'));
-            var name = input.attr('name');
-            input.bind('blur', function () {
-                el.toggleClass('has-error', formControl[name].$invalid);
-            });
-        }
-    };
-});
-
-},{}],49:[function(require,module,exports){
-arguments[4][39][0].apply(exports,arguments)
-},{"dup":39}],50:[function(require,module,exports){
-'use strict';
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-angular.module('27th.common.services.alert', []).service('alertService', (function () {
-    function _class($rootScope) {
-        _classCallCheck(this, _class);
-
-        this.alerts = [];
-        this.$rootScope = $rootScope;
-    }
-
-    _createClass(_class, [{
-        key: 'success',
-        value: function success(msg) {
-            this.alerts.push({ type: 'success', message: msg });
-            this.$rootScope.$emit('alerts.new');
-        }
-    }, {
-        key: 'error',
-        value: function error(msg) {
-            this.alerts.push({ type: 'error', message: msg });
-            this.$rootScope.$emit('alerts.new');
-        }
-    }, {
-        key: 'nextAlert',
-        value: function nextAlert() {
-            return this.alerts.pop();
-        }
-    }]);
-
-    return _class;
-})());
-
-},{}],"common":[function(require,module,exports){
+},{"./fetch-service-base":45}],"common":[function(require,module,exports){
 'use strict';
 
 require('./components/empty-sidebar');
@@ -66819,9 +66733,16 @@ require('./directives/alert-container');
 require('./directives/loading-panel');
 require('./directives/link-errors');
 
+require('./services/pilot-service');
+require('./services/theater-service');
 require('./services/alert-service');
+require('./services/enjin-service');
 
-},{"./components/empty-sidebar":46,"./directives/alert-container":47,"./directives/link-errors":48,"./directives/loading-panel":49,"./services/alert-service":50}],"templates-common":[function(require,module,exports){
+module.exports = {
+    FetchServiceBase: require('./services/fetch-service-base')
+};
+
+},{"./components/empty-sidebar":39,"./directives/alert-container":40,"./directives/link-errors":41,"./directives/loading-panel":42,"./services/alert-service":43,"./services/enjin-service":44,"./services/fetch-service-base":45,"./services/pilot-service":46,"./services/theater-service":47}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
@@ -66835,9 +66756,9 @@ angular.module("27th.common.templates", []).run(["$templateCache", function ($te
 "use strict";
 
 angular.module("27th.acmi.templates", []).run(["$templateCache", function ($templateCache) {
-  $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
-  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
   $templateCache.put("./topnav/topnav.html", "<nav class=\"navbar navbar-inverse navbar-fixed-top\"><div class=\"container-fluid\"><div class=\"navbar-header\"><button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a href=\"/acmi\" class=\"navbar-brand\">ACMI Log</a></div><div id=\"navbar\" class=\"navbar-collapse collapse\"><ul class=\"nav navbar-nav\"><li><a ng-link=\"upload\">Upload</a></li></ul></div></div></nav>");
+  $templateCache.put("./directives/alert-container.html", "<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\"><button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}</div>");
+  $templateCache.put("./directives/loading-panel.html", "<div class=\"loading-panel\"><div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div><div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div></div>");
   $templateCache.put("./components/acmi/acmi.html", "\n<div class=\"acmi-details\">\n  <div ng-repeat=\"acmi in acmi.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"{{ acmi.downloadPath() }}\" download=\"download\" uib-tooltip=\"Download\" tooltip-popup-delay=\"750\" class=\"download-link pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a><a clipboard=\"clipboard\" text=\"acmi.detailsLink\" uib-tooltip=\"Copy Link\" tooltip-popup-delay=\"750\" class=\"copy-details-link pull-right\"><i class=\"glyphicon glyphicon-link\"></i></a><a ng-link=\"details({ id: acmi._id, slug: acmi.slug })\" uib-tooltip=\"Details\" tooltip-popup-delay=\"750\" class=\"details-link pull-right\"><i class=\"glyphicon glyphicon-list\"></i></a><a href=\"{{ acmi.videoUrl }}\" ng-hide=\"!acmi.videoUrl\" uib-tooltip=\"YouTube Video\" tooltip-popup-delay=\"750\" class=\"video-link pull-right\"><i class=\"glyphicon glyphicon-film\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row summary-row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5>{{ acmi.details | characters: 250 }}\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row-top\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Theater</span><span class=\"mission-details\">{{ acmi.theater }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"tag-header\">Mission Type</span><span class=\"mission-details\">{{ acmi.missionType }}</span></div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"acmi.currentPage\" total-items=\"acmi.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"acmi.pageChanged()\"></uib-pagination>\n</nav>");
   $templateCache.put("./components/acmi-details/acmi-details.html", "\n<loading-panel loading=\"acmiDetails.loading\">\n  <div class=\"container-fluid\">\n    <div class=\"row\">\n      <div class=\"col-sm-10\">\n        <h3>{{ acmiDetails.acmi.title }}</h3>\n      </div>\n      <div class=\"col-sm-2\"><a href=\"{{ acmiDetails.acmi.downloadPath() }}\" download=\"download\" uib-tooltip=\"Download\" tooltip-popup-delay=\"750\" role=\"button\" class=\"download-btn btn-info btn-sm pull-right\">Download</a></div>\n    </div>\n    <div class=\"row\">\n      <div class=\"col-sm-6\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Info</div>\n          <table class=\"table table-condensed\">\n            <tbody>\n              <tr>\n                <td width=\"30%\">Tags</td>\n                <td>{{ acmiDetails.acmi.tags.join(\', \') }}</td>\n              </tr>\n              <tr>\n                <td>Uploaded</td>\n                <td>{{ acmiDetails.acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n      </div>\n      <div class=\"col-sm-6\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Pilots</div>\n          <table class=\"table table-condensed\">\n            <tbody>\n              <tr ng-repeat=\"pilot in acmiDetails.acmi.pilots\">\n                <td>{{ pilot }}</td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n      </div>\n    </div>\n    <div class=\"row\">\n      <div class=\"col-sm-12\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Details</div>\n          <div class=\"panel-body\">\n            <p class=\"details-text\">{{ acmiDetails.acmi.details }}</p>\n          </div>\n        </div>\n      </div>\n    </div>\n    <div ng-hide=\"!acmiDetails.acmi.videoUrl\" class=\"row\">\n      <div class=\"col-sm-12\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">YouTube Video</div>\n          <div class=\"panel-body\">\n            <youtube-video video-url=\"acmiDetails.acmi.videoUrl\"></youtube-video>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</loading-panel>");
   $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div>\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"acmiFilter.applyFilters()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.tags\" placeholder=\"Tags\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"theater\" ng-model=\"acmiFilter.theater\" ng-change=\"acmiFilter.applyFilters()\" placeholder=\"Theater\" ng-options=\"theater.value as theater.name for theater in acmiFilter.theaters\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"mission-type\" ng-model=\"acmiFilter.missionType\" ng-change=\"acmiFilter.applyFilters()\" ng-options=\"type.value as type.name for type in acmiFilter.missionTypes\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <div class=\"checkbox\">\n        <label>\n          <input type=\"checkbox\" ng-model=\"acmiFilter.hasVideo\" ng-change=\"acmiFilter.applyFilters()\"/>Has Video\n        </label>\n      </div>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ acmiFilter.popularTags.join(\', \') }}</span>\n  </div>\n</div>");

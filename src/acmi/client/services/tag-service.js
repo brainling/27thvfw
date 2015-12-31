@@ -1,6 +1,6 @@
 'use strict';
 
-const base = require('./fetch-service-base');
+const base = require('common').FetchServiceBase;
 angular.module('27th.acmi.services.tag', [])
     .service('tagService', class extends base {
         constructor($http, $q) {

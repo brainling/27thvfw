@@ -7,7 +7,7 @@ angular.module('27th.acmi.log', [
         'truncate',
         'angular-clipboard',
         '27th.acmi.services.acmi',
-        '27th.acmi.services.alert'
+        '27th.common.services.alert'
     ])
     .controller('AcmiController', class {
         constructor($rootScope, acmiService, alertService) {

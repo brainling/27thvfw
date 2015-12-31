@@ -1,7 +1,0 @@
-div.alert.alert-success(role='alert'
-    ng-class='{ "alert-danger": vm.alert && vm.alert.type == "error" }'
-    ng-hide='!vm.alert')
-    button.close(type='button')
-        span(aria-hidden=true ng-click='vm.dismissAlert()') &times
-
-    | {{ vm.alert.message }}

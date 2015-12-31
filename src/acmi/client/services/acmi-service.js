@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const base = require('./fetch-service-base');
+const base = require('common').FetchServiceBase;
 
 angular.module('27th.acmi.services.acmi', [])
     .service('acmiService', class extends base {

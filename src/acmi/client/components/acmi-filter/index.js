@@ -5,9 +5,9 @@ const _ = require('lodash');
 angular.module('27th.acmi.filter', [
         'ngTagsInput',
         '27th.acmi.services.acmi',
-        '27th.acmi.services.pilot',
+        '27th.common.services.pilot',
         '27th.acmi.services.tag',
-        '27th.acmi.services.theater'
+        '27th.common.services.theater'
     ])
     .controller('AcmiFilterController', class {
         constructor($rootScope, $q, acmiService, pilotService, tagService, theaterService) {

@@ -50721,6 +50721,132 @@ angular.module('27th.common.services.alert', []).service('alertService', (functi
 })());
 
 },{}],25:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module('27th.common.services.enjin', []).service('enjinService', (function () {
+    function _class() {
+        _classCallCheck(this, _class);
+    }
+
+    return _class;
+})());
+
+},{}],26:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+module.exports = (function () {
+    function _class($http, $q) {
+        _classCallCheck(this, _class);
+
+        this.$http = $http;
+        this.$q = $q;
+    }
+
+    _createClass(_class, [{
+        key: 'getAsync',
+        value: function getAsync(url, params) {
+            var transform = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+
+            var deferred = this.$q.defer();
+
+            this.$http.get(url, { params: params || {} }).then(function (response) {
+                deferred.resolve(transform ? transform(response.data) : response.data);
+            }).catch(function (err) {
+                deferred.reject(err);
+            });
+
+            return deferred.promise;
+        }
+    }, {
+        key: 'postAsync',
+        value: function postAsync(url, payload) {
+            var deferred = this.$q.defer();
+
+            this.$http.post(url, payload).then(function (response) {
+                deferred.resolve(response.data);
+            }).catch(function (err) {
+                deferred.reject(err);
+            });
+
+            return deferred.promise;
+        }
+    }]);
+
+    return _class;
+})();
+
+},{}],27:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var base = require('./fetch-service-base');
+angular.module('27th.common.services.pilot', []).service('pilotService', (function (_base) {
+    _inherits(_class, _base);
+
+    function _class($http, $q) {
+        _classCallCheck(this, _class);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
+    }
+
+    _createClass(_class, [{
+        key: 'get',
+        value: function get(query) {
+            query = query || '';
+            return this.getAsync('/api/pilots/auto-complete', {
+                query: query.trim()
+            });
+        }
+    }]);
+
+    return _class;
+})(base));
+
+},{"./fetch-service-base":26}],28:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var base = require('./fetch-service-base');
+angular.module('27th.common.services.theater', []).service('theaterService', (function (_base) {
+    _inherits(_class, _base);
+
+    function _class($http, $q) {
+        _classCallCheck(this, _class);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
+    }
+
+    _createClass(_class, [{
+        key: 'get',
+        value: function get() {
+            return this.getAsync('/api/theaters');
+        }
+    }]);
+
+    return _class;
+})(base));
+
+},{"./fetch-service-base":26}],29:[function(require,module,exports){
 /* globals window */
 'use strict';
 
@@ -50758,7 +50884,7 @@ angular.module('27th.training', ['ngNewRouter', '27th.common.templates', '27th.t
     return _class;
 })());
 
-},{"./components/dashboard":26,"./components/topnav":27,"angular":5,"angular-new-router":1,"angular-ui-bootstrap":2,"bootstrap":6,"common":"common","jquery":19,"templates":"templates","templates-common":"templates-common"}],26:[function(require,module,exports){
+},{"./components/dashboard":30,"./components/topnav":31,"angular":5,"angular-new-router":1,"angular-ui-bootstrap":2,"bootstrap":6,"common":"common","jquery":19,"templates":"templates","templates-common":"templates-common"}],30:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -50771,7 +50897,7 @@ angular.module('27th.training.dashboard', []).controller('DashboardController', 
     return _class;
 })());
 
-},{}],27:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -50793,9 +50919,16 @@ require('./directives/alert-container');
 require('./directives/loading-panel');
 require('./directives/link-errors');
 
+require('./services/pilot-service');
+require('./services/theater-service');
 require('./services/alert-service');
+require('./services/enjin-service');
 
-},{"./components/empty-sidebar":20,"./directives/alert-container":21,"./directives/link-errors":22,"./directives/loading-panel":23,"./services/alert-service":24}],"templates-common":[function(require,module,exports){
+module.exports = {
+    FetchServiceBase: require('./services/fetch-service-base')
+};
+
+},{"./components/empty-sidebar":20,"./directives/alert-container":21,"./directives/link-errors":22,"./directives/loading-panel":23,"./services/alert-service":24,"./services/enjin-service":25,"./services/fetch-service-base":26,"./services/pilot-service":27,"./services/theater-service":28}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
@@ -50813,4 +50946,4 @@ angular.module("27th.training.templates", []).run(["$templateCache", function ($
   $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"dashboard\" class=\"navbar-brand\">Training Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\"></div>\n  </div>\n</nav>");
 }]);
 
-},{}]},{},[25]);
+},{}]},{},[29]);

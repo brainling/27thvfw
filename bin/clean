@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+'use strict';
+
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
+const path = require('path');
+const Acmi = require('../server/common/models/acmi');
+const winston = require('winston');
+const mongoose = require('mongoose');
+const config = require('../config').get('/');
+const AWS = require('aws-sdk');
+
+const AcmiRegex = /acmis\/(.*)\/(.*)/;
+
+winston.level = config.logging.debug ? 'debug' : 'info';
+let connection = mongoose.connect(config.db.mongo.url);
+
+AWS.config.update({
+    accessKeyId: config.storage.aws.key,
+    secretAccessKey: config.storage.aws.secret,
+    region: 'us-west-2'
+});
+
+
+let totalOrphanedFiles = 0;
+let totalUnorphanedFiles = 0;
+
+let s3 = new AWS.S3();
+
+function deleteAcmiFiles(keys, bucket) {
+    return new Promise((resolve, reject) => {
+        if(!keys || keys.length === 0) {
+            resolve();
+        }
+
+        s3.deleteObjects({
+            Delete: {
+                Objects: keys.map(key => {
+                    return { Key: key };
+                })
+            },
+            Bucket: bucket
+        }, (err, data) => {
+            if(err) {
+                return reject(err);
+            }
+
+            return resolve(data.Deleted.length);
+        });
+    });
+}
+
+function cleanOrphanedFiles(marker) {
+    return new Promise((resolve, reject) => {
+        s3.listObjects({
+            Bucket: config.storage.aws.bucket,
+            Prefix: 'acmis/',
+            Marker: marker
+        }, (err, data) => {
+            if (err) {
+                return reject(err);
+            }
+
+            var finds = [];
+            var keysToDelete = [];
+            for (let item of data.Contents) {
+                var parts = item.Key.match(AcmiRegex);
+                if (parts) {
+                    let key = parts[1];
+                    let file = parts[2];
+                    let fullKey = parts[0];
+
+                    finds.push(Acmi.findOne({
+                        files: {
+                            $elemMatch: {
+                                key: key,
+                                file: file,
+                                bucket: config.storage.aws.bucket
+                            }
+                        }
+                    }).then(acmi => {
+                        if (acmi) {
+                            totalUnorphanedFiles += 1;
+                        }
+                        else {
+                            totalOrphanedFiles += 1;
+                            keysToDelete.push(fullKey);
+                        }
+                    }));
+                }
+            }
+
+            Promise.all(finds).then(() => {
+                winston.info(`Found ${totalOrphanedFiles} orphaned ACMI files...`);
+                winston.info(`Found ${totalUnorphanedFiles} unorphaned ACMI files...`);
+                deleteAcmiFiles(keysToDelete, config.storage.aws.bucket).then(count => {
+                    winston.info(`Deleted ${count || 0} orphaned ACMI files.`);
+                    if(data.IsTruncated) {
+                        winston.info('Starting next pass...');
+                        cleanOrphanedFiles(data.NextMarker).then(() => resolve());
+                    }
+                    else {
+                        resolve();
+                    }
+                });
+            });
+        });
+    });
+}
+
+cleanOrphanedFiles().then(() => {
+    connection.disconnect();
+});

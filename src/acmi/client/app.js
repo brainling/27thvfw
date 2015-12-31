@@ -11,18 +11,14 @@ require('ng-file-upload');
 require('angular-truncate-2');
 require('angular-clipboard');
 require('angular-youtube-embed');
-require('templates');
 require('angular-ui-bootstrap');
 
-require('./services/alert-service');
-require('./services/acmi-service');
-require('./services/pilot-service');
-require('./services/tag-service');
-require('./services/theater-service');
+require('templates');
+require('templates-common');
+require('common');
 
-require('./directives/alert-container');
-require('./directives/link-errors');
-require('./directives/loading-panel');
+require('./services/acmi-service');
+require('./services/tag-service');
 
 require('./components/acmi');
 require('./components/acmi-details');
@@ -33,7 +29,8 @@ require('./components/topnav');
 
 angular.module('27th.acmi', [
     'ngNewRouter',
-    '27th.acmi.directives.alertContainer',
+    '27th.common.templates',
+    '27th.common.directives.alertContainer',
     '27th.acmi.templates',
     '27th.acmi.log',
     '27th.acmi.details',
