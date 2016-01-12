@@ -34,6 +34,7 @@ class Server {
 
             mongoose.connect(config.db.mongo.url);
 
+            this.server.route(require('./routes/auth'));
             this.server.route(require('./routes/acmi'));
             this.server.route(require('./routes/pilots'));
             this.server.route(require('./routes/tags'));

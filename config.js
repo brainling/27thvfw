@@ -65,6 +65,25 @@ var store = new confidence.Store({
         $default: {
             debug: true
         }
+    },
+    enjin: {
+        $filter: 'env',
+        production: {
+            api: {
+                key: process.env.ENJIN_API_KEY
+            },
+            site: {
+                id: process.env.ENJIN_SITE_ID
+            }
+        },
+        $default: {
+            api: {
+                key: localConfig.enjinKey
+            },
+            site: {
+                id: localConfig.enjinSiteId
+            }
+        }
     }
 });
 
