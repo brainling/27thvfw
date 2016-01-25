@@ -113,6 +113,7 @@ module.exports = [
         path: '/api/acmi',
         method: 'POST',
         config: {
+            auth: 'session',
             payload: {
                 parse: true
             },
@@ -134,6 +135,9 @@ module.exports = [
     {
         path: '/api/acmi/policy',
         method: 'GET',
+        config: {
+            auth: 'session'
+        },
         handler: (request, reply) => {
             let policyObject = {
                 expiration: new Date(Date.now() + 600000).toISOString(),

@@ -1,13 +1,83 @@
 'use strict';
 
+function authPost(url, params) {
+    return this.postAsync(url, params)
+        .then(res => {
+            this.credentials = res;
+            this.$rootScope.$emit('auth.stateChanged', true);
+            return true;
+        })
+        .catch(err => {
+            this.credentials = null;
+            this.$rootScope.$emit('auth.stateChanged', false);
+            throw err.data.message;
+        });
+}
+
+function authGet(url) {
+    return this.getAsync(url)
+        .then(res => {
+            this.credentials = res;
+            this.$rootScope.$emit('auth.stateChanged', true);
+            return true;
+        })
+        .catch(err => {
+            this.credentials = null;
+            this.$rootScope.$emit('auth.stateChanged', false);
+            throw err.data.message;
+        });
+}
+
 const base = require('./fetch-service-base');
 angular.module('27th.common.services.auth', [])
     .service('authService', class extends base {
-        constructor($q, $http) {
+        constructor($q, $http, $rootScope) {
             super($http, $q);
+            this.$rootScope = $rootScope;
+            this.credentials = null;
+            this.started = false;
         }
 
-        authorize() {
+        login(email, password) {
+            return authPost.call(this, '/api/auth/login', {
+                email: email,
+                password: password
+            });
+        }
 
+        logout() {
+            this.credentials = null;
+            this.$rootScope.$emit('auth.stateChanged', false);
+            return this.getAsync('/api/auth/logout');
+        }
+
+        start() {
+            function doStart() {
+                if(!this.started) {
+                    this.started = true;
+                    this.$rootScope.$emit('auth.started');
+                }
+            }
+
+            this.check()
+                .then(() => {
+                    doStart.call(this);
+                })
+                .catch(err => {
+                    doStart.call(this);
+                    throw err;
+                });
+        }
+
+        check() {
+            return authGet.call(this, '/api/auth/check');
+        }
+
+        isAuthenticated() {
+            return this.credentials !== null;
+        }
+
+        getCredentials() {
+            return this.credentials;
         }
     });

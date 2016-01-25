@@ -65987,11 +65987,11 @@ require('./components/acmi');
 require('./components/acmi-details');
 require('./components/upload-acmi');
 require('./components/acmi-filter');
-require('./components/empty-sidebar');
 require('./components/topnav');
+require('./components/login');
 
-angular.module('27th.acmi', ['ngNewRouter', '27th.common.templates', '27th.common.directives.alertContainer', '27th.acmi.templates', '27th.acmi.log', '27th.acmi.details', '27th.acmi.upload', '27th.acmi.filter', '27th.acmi.emptySidebar', '27th.acmi.topnav']).controller('AppController', (function () {
-    function _class($router) {
+angular.module('27th.acmi', ['ngNewRouter', '27th.common.templates', '27th.common.directives.alertContainer', '27th.common.emptySidebar', '27th.common.services.auth', '27th.acmi.templates', '27th.acmi.log', '27th.acmi.details', '27th.acmi.upload', '27th.acmi.filter', '27th.acmi.topnav', '27th.acmi.login']).controller('AppController', (function () {
+    function _class($router, authService) {
         _classCallCheck(this, _class);
 
         $router.config([{
@@ -66018,13 +66018,23 @@ angular.module('27th.acmi', ['ngNewRouter', '27th.common.templates', '27th.commo
                 'default': 'uploadAcmi'
             },
             as: 'upload'
+        }, {
+            path: '/login',
+            components: {
+                'topnav': 'topnav',
+                'sidebar': 'emptySidebar',
+                'default': 'login'
+            },
+            as: 'login'
         }]);
+
+        authService.start();
     }
 
     return _class;
 })());
 
-},{"./components/acmi":33,"./components/acmi-details":31,"./components/acmi-filter":32,"./components/empty-sidebar":34,"./components/topnav":35,"./components/upload-acmi":36,"./services/acmi-service":37,"./services/tag-service":38,"angular":9,"angular-clipboard":1,"angular-new-router":2,"angular-truncate-2":3,"angular-ui-bootstrap":4,"angular-youtube-embed":6,"bootstrap":10,"common":"common","jquery":23,"ng-file-upload":26,"ng-tags-input":27,"templates":"templates","templates-common":"templates-common"}],31:[function(require,module,exports){
+},{"./components/acmi":33,"./components/acmi-details":31,"./components/acmi-filter":32,"./components/login":34,"./components/topnav":35,"./components/upload-acmi":36,"./services/acmi-service":37,"./services/tag-service":38,"angular":9,"angular-clipboard":1,"angular-new-router":2,"angular-truncate-2":3,"angular-ui-bootstrap":4,"angular-youtube-embed":6,"bootstrap":10,"common":"common","jquery":23,"ng-file-upload":26,"ng-tags-input":27,"templates":"templates","templates-common":"templates-common"}],31:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -66185,12 +66195,34 @@ angular.module('27th.acmi.log', ['ui.bootstrap', 'truncate', 'angular-clipboard'
 },{"lodash":24}],34:[function(require,module,exports){
 'use strict';
 
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module('27th.acmi.emptySidebar', []).controller('EmptySidebarController', (function () {
-    function _class() {
+angular.module('27th.acmi.login', ['27th.common.services.auth', '27th.common.services.alert']).controller('LoginController', (function () {
+    function _class($location, authService, alertService) {
         _classCallCheck(this, _class);
+
+        this.$location = $location;
+        this.authService = authService;
+        this.alertService = alertService;
+
+        this.email = '';
+        this.password = '';
     }
+
+    _createClass(_class, [{
+        key: 'login',
+        value: function login() {
+            var _this = this;
+
+            this.authService.login(this.email, this.password).then(function () {
+                return _this.$location.path('/');
+            }).catch(function (err) {
+                return _this.alertService.error(err);
+            });
+        }
+    }]);
 
     return _class;
 })());
@@ -66198,12 +66230,37 @@ angular.module('27th.acmi.emptySidebar', []).controller('EmptySidebarController'
 },{}],35:[function(require,module,exports){
 'use strict';
 
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module('27th.acmi.topnav', []).controller('TopnavController', (function () {
-    function _class() {
+angular.module('27th.acmi.topnav', ['27th.common.services.auth']).controller('TopnavController', (function () {
+    function _class($rootScope, authService) {
+        var _this = this;
+
         _classCallCheck(this, _class);
+
+        this.authService = authService;
+        this.isLoggedIn = authService.isAuthenticated();
+        this.user = {};
+        this.loading = true;
+
+        $rootScope.$on('auth.stateChanged', function (evt, state) {
+            _this.isLoggedIn = state;
+            _this.user = authService.getCredentials();
+        });
+
+        $rootScope.$on('auth.started', function () {
+            _this.loading = false;
+        });
     }
+
+    _createClass(_class, [{
+        key: 'logout',
+        value: function logout() {
+            this.authService.logout();
+        }
+    }]);
 
     return _class;
 })());
@@ -66547,7 +66604,7 @@ angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', 
 },{}],42:[function(require,module,exports){
 'use strict';
 
-angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
+angular.module('27th.common.directives.loadingPanel', []).directive('loadingPanel', function () {
     return {
         restrict: 'E',
         transclude: true,
@@ -66601,17 +66658,112 @@ angular.module('27th.common.services.alert', []).service('alertService', (functi
 },{}],44:[function(require,module,exports){
 'use strict';
 
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module('27th.common.services.enjin', []).service('enjinService', (function () {
-    function _class() {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function authPost(url, params) {
+    var _this = this;
+
+    return this.postAsync(url, params).then(function (res) {
+        _this.credentials = res;
+        _this.$rootScope.$emit('auth.stateChanged', true);
+        return true;
+    }).catch(function (err) {
+        _this.credentials = null;
+        _this.$rootScope.$emit('auth.stateChanged', false);
+        throw err.data.message;
+    });
+}
+
+function authGet(url) {
+    var _this2 = this;
+
+    return this.getAsync(url).then(function (res) {
+        _this2.credentials = res;
+        _this2.$rootScope.$emit('auth.stateChanged', true);
+        return true;
+    }).catch(function (err) {
+        _this2.credentials = null;
+        _this2.$rootScope.$emit('auth.stateChanged', false);
+        throw err.data.message;
+    });
+}
+
+var base = require('./fetch-service-base');
+angular.module('27th.common.services.auth', []).service('authService', (function (_base) {
+    _inherits(_class, _base);
+
+    function _class($q, $http, $rootScope) {
         _classCallCheck(this, _class);
+
+        var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
+
+        _this3.$rootScope = $rootScope;
+        _this3.credentials = null;
+        _this3.started = false;
+        return _this3;
     }
 
-    return _class;
-})());
+    _createClass(_class, [{
+        key: 'login',
+        value: function login(email, password) {
+            return authPost.call(this, '/api/auth/login', {
+                email: email,
+                password: password
+            });
+        }
+    }, {
+        key: 'logout',
+        value: function logout() {
+            this.credentials = null;
+            this.$rootScope.$emit('auth.stateChanged', false);
+            return this.getAsync('/api/auth/logout');
+        }
+    }, {
+        key: 'start',
+        value: function start() {
+            var _this4 = this;
 
-},{}],45:[function(require,module,exports){
+            function doStart() {
+                if (!this.started) {
+                    this.started = true;
+                    this.$rootScope.$emit('auth.started');
+                }
+            }
+
+            this.check().then(function () {
+                doStart.call(_this4);
+            }).catch(function (err) {
+                doStart.call(_this4);
+                throw err;
+            });
+        }
+    }, {
+        key: 'check',
+        value: function check() {
+            return authGet.call(this, '/api/auth/check');
+        }
+    }, {
+        key: 'isAuthenticated',
+        value: function isAuthenticated() {
+            return this.credentials !== null;
+        }
+    }, {
+        key: 'getCredentials',
+        value: function getCredentials() {
+            return this.credentials;
+        }
+    }]);
+
+    return _class;
+})(base));
+
+},{"./fetch-service-base":45}],45:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -66736,18 +66888,18 @@ require('./directives/link-errors');
 require('./services/pilot-service');
 require('./services/theater-service');
 require('./services/alert-service');
-require('./services/enjin-service');
+require('./services/auth-service');
 
 module.exports = {
     FetchServiceBase: require('./services/fetch-service-base')
 };
 
-},{"./components/empty-sidebar":39,"./directives/alert-container":40,"./directives/link-errors":41,"./directives/loading-panel":42,"./services/alert-service":43,"./services/enjin-service":44,"./services/fetch-service-base":45,"./services/pilot-service":46,"./services/theater-service":47}],"templates-common":[function(require,module,exports){
+},{"./components/empty-sidebar":39,"./directives/alert-container":40,"./directives/link-errors":41,"./directives/loading-panel":42,"./services/alert-service":43,"./services/auth-service":44,"./services/fetch-service-base":45,"./services/pilot-service":46,"./services/theater-service":47}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
   $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
-  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
+  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"icon-spinner icon-spin\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
   $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
 }]);
@@ -66761,9 +66913,10 @@ angular.module("27th.acmi.templates", []).run(["$templateCache", function ($temp
   $templateCache.put("./directives/loading-panel.html", "<div class=\"loading-panel\"><div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div><div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div></div>");
   $templateCache.put("./components/acmi/acmi.html", "\n<div class=\"acmi-details\">\n  <div ng-repeat=\"acmi in acmi.acmis\" class=\"panel panel-default\">\n    <div class=\"panel-heading\"><span class=\"acmi-header\">{{ acmi.title }}</span><a href=\"{{ acmi.downloadPath() }}\" download=\"download\" uib-tooltip=\"Download\" tooltip-popup-delay=\"750\" class=\"download-link pull-right\"><i class=\"glyphicon glyphicon-download\"></i></a><a clipboard=\"clipboard\" text=\"acmi.detailsLink\" uib-tooltip=\"Copy Link\" tooltip-popup-delay=\"750\" class=\"copy-details-link pull-right\"><i class=\"glyphicon glyphicon-link\"></i></a><a ng-link=\"details({ id: acmi._id, slug: acmi.slug })\" uib-tooltip=\"Details\" tooltip-popup-delay=\"750\" class=\"details-link pull-right\"><i class=\"glyphicon glyphicon-list\"></i></a><a href=\"{{ acmi.videoUrl }}\" ng-hide=\"!acmi.videoUrl\" uib-tooltip=\"YouTube Video\" tooltip-popup-delay=\"750\" class=\"video-link pull-right\"><i class=\"glyphicon glyphicon-film\"></i></a></div>\n    <div class=\"panel-body\">\n      <div class=\"container-fluid\">\n        <div class=\"row summary-row\">\n          <div class=\"col-sm-8\">\n            <h5>Details</h5>{{ acmi.details | characters: 250 }}\n          </div>\n          <div class=\"col-sm-4\">\n            <h5>Pilots</h5>{{ acmi.pilots.join(\', \') }}\n          </div>\n        </div>\n        <div class=\"row detail-row-top\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Theater</span><span class=\"mission-details\">{{ acmi.theater }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"tag-header\">Mission Type</span><span class=\"mission-details\">{{ acmi.missionType }}</span></div>\n        </div>\n        <div class=\"row detail-row\">\n          <div class=\"col-sm-8\"><span class=\"tag-header\">Tags</span><span class=\"tag-list\">{{ acmi.tags.join(\', \') }}</span></div>\n          <div class=\"col-sm-4\"><span class=\"uploaded-header\">Uploaded</span><span class=\"uploaded-date\">{{ acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</span></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n<nav>\n  <uib-pagination ng-model=\"acmi.currentPage\" total-items=\"acmi.totalAcmis\" max-size=\"5\" boundary-links=\"true\" previous-text=\"&lsaquo;\" next-text=\"&rsaquo;\" first-text=\"&laquo;\" last-text=\"&raquo;\" items-per-page=\"vm.pageSize\" ng-change=\"acmi.pageChanged()\"></uib-pagination>\n</nav>");
   $templateCache.put("./components/acmi-details/acmi-details.html", "\n<loading-panel loading=\"acmiDetails.loading\">\n  <div class=\"container-fluid\">\n    <div class=\"row\">\n      <div class=\"col-sm-10\">\n        <h3>{{ acmiDetails.acmi.title }}</h3>\n      </div>\n      <div class=\"col-sm-2\"><a href=\"{{ acmiDetails.acmi.downloadPath() }}\" download=\"download\" uib-tooltip=\"Download\" tooltip-popup-delay=\"750\" role=\"button\" class=\"download-btn btn-info btn-sm pull-right\">Download</a></div>\n    </div>\n    <div class=\"row\">\n      <div class=\"col-sm-6\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Info</div>\n          <table class=\"table table-condensed\">\n            <tbody>\n              <tr>\n                <td width=\"30%\">Tags</td>\n                <td>{{ acmiDetails.acmi.tags.join(\', \') }}</td>\n              </tr>\n              <tr>\n                <td>Uploaded</td>\n                <td>{{ acmiDetails.acmi.uploadedAt | date: \'MMM d, y h:mm a\' }}</td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n      </div>\n      <div class=\"col-sm-6\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Pilots</div>\n          <table class=\"table table-condensed\">\n            <tbody>\n              <tr ng-repeat=\"pilot in acmiDetails.acmi.pilots\">\n                <td>{{ pilot }}</td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n      </div>\n    </div>\n    <div class=\"row\">\n      <div class=\"col-sm-12\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">Details</div>\n          <div class=\"panel-body\">\n            <p class=\"details-text\">{{ acmiDetails.acmi.details }}</p>\n          </div>\n        </div>\n      </div>\n    </div>\n    <div ng-hide=\"!acmiDetails.acmi.videoUrl\" class=\"row\">\n      <div class=\"col-sm-12\">\n        <div class=\"panel panel-default\">\n          <div class=\"panel-heading\">YouTube Video</div>\n          <div class=\"panel-body\">\n            <youtube-video video-url=\"acmiDetails.acmi.videoUrl\"></youtube-video>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</loading-panel>");
-  $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div>\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"vm.title\" ng-change=\"acmiFilter.applyFilters()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.tags\" placeholder=\"Tags\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"theater\" ng-model=\"acmiFilter.theater\" ng-change=\"acmiFilter.applyFilters()\" placeholder=\"Theater\" ng-options=\"theater.value as theater.name for theater in acmiFilter.theaters\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"mission-type\" ng-model=\"acmiFilter.missionType\" ng-change=\"acmiFilter.applyFilters()\" ng-options=\"type.value as type.name for type in acmiFilter.missionTypes\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <div class=\"checkbox\">\n        <label>\n          <input type=\"checkbox\" ng-model=\"acmiFilter.hasVideo\" ng-change=\"acmiFilter.applyFilters()\"/>Has Video\n        </label>\n      </div>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ acmiFilter.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
+  $templateCache.put("./components/login/login.html", "\n<form name=\"loginForm\" class=\"form-horizontal\">\n  <div class=\"form-group\">\n    <label for=\"email\" class=\"col-sm-3 control-label\">E-mail</label>\n    <div class=\"col-sm-9\">\n      <input type=\"email\" id=\"email\" ng-model=\"login.email\" ng-required=\"true\" class=\"form-control\"/>\n    </div>\n  </div>\n  <div class=\"form-group\">\n    <label for=\"password\" class=\"col-sm-3 control-label\">Password</label>\n    <div class=\"col-sm-9\">\n      <input type=\"password\" id=\"password\" ng-model=\"login.password\" ng-required=\"true\" class=\"form-control\"/>\n    </div>\n  </div>\n  <div class=\"form-group\">\n    <div class=\"col-sm-offset-3 col-sm-9\">\n      <button type=\"submit\" ng-click=\"login.login()\" ng-disabled=\"loginForm.$invalid\" class=\"btn btn-success\">Login</button>\n    </div>\n  </div>\n</form>");
+  $templateCache.put("./components/acmi-filter/acmi-filter.html", "\n<div>\n  <h3>Filters</h3>\n  <form>\n    <div class=\"form-group\">\n      <input id=\"title\" type=\"text\" placeholder=\"Title\" ng-model=\"acmiFilter.title\" ng-change=\"acmiFilter.applyFilters()\" class=\"form-control\"/>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.tags\" placeholder=\"Tags\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadTags($query)\" min-length=\"1\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <tags-input ng-model=\"acmiFilter.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" on-tag-added=\"acmiFilter.applyFilters()\" on-tag-removed=\"acmiFilter.applyFilters()\">\n        <auto-complete source=\"acmiFilter.loadPilots($query)\" min-length=\"2\"></auto-complete>\n      </tags-input>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"theater\" ng-model=\"acmiFilter.theater\" ng-change=\"acmiFilter.applyFilters()\" placeholder=\"Theater\" ng-options=\"theater.value as theater.name for theater in acmiFilter.theaters\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <select id=\"mission-type\" ng-model=\"acmiFilter.missionType\" ng-change=\"acmiFilter.applyFilters()\" ng-options=\"type.value as type.name for type in acmiFilter.missionTypes\" class=\"form-control\"></select>\n    </div>\n    <div class=\"form-group\">\n      <div class=\"checkbox\">\n        <label>\n          <input type=\"checkbox\" ng-model=\"acmiFilter.hasVideo\" ng-change=\"acmiFilter.applyFilters()\"/>Has Video\n        </label>\n      </div>\n    </div>\n  </form>\n  <div class=\"well\">\n    <h5>Popular Tags</h5><span>{{ acmiFilter.popularTags.join(\', \') }}</span>\n  </div>\n</div>");
+  $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\" ng-hide=\"topnav.loading || !topnav.isLoggedIn\">Upload</a></li>\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-hide=\"topnav.isLoggedIn\"><a ng-link=\"login\"><span ng-hide=\"topnav.loading\">Login</span><span ng-hide=\"!topnav.loading\" class=\"glyphicon glyphicon-refresh glyphicon-spin\"></span></a></li>\n        <li ng-hide=\"topnav.loading || !topnav.isLoggedIn\" class=\"dropdown\"><a data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\" class=\"dropdown-toggle\">{{ topnav.user.callsign }}<span class=\"caret\"></span></a>\n          <ul class=\"dropdown-menu\">\n            <li><a href=\"#\" ng-click=\"topnav.logout()\">Logout</a></li>\n          </ul>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
-  $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
   $templateCache.put("./components/upload-acmi/upload-acmi.html", "\n<div>\n  <loading-panel loading=\"uploadAcmi.loading\">\n    <form name=\"uploadForm\" class=\"form\">\n      <div class=\"container-fluid\">\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-9\">\n            <label for=\"title\">Title</label>\n            <input id=\"title\" type=\"text\" name=\"title\" ng-model=\"uploadAcmi.acmi.title\" ng-disabled=\"uploadAcmi.uploading\" ng-required=\"true\" ng-minlength=\"3\" ng-maxlength=\"128\" class=\"form-control\"/>\n          </div>\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-3\">\n            <label for=\"mission-type\">Mission Type</label>\n            <select id=\"mission-type\" ng-model=\"uploadAcmi.acmi.missionType\" ng-options=\"type.value as type.name for type in uploadAcmi.missionTypes\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"file\">File</label>\n            <input id=\"file\" type=\"file\" ng-model=\"uploadAcmi.file\" name=\"file\" ngf-select=\"ngf-select\" accept=\".acmi\" ng-required=\"true\" ng-disabled=\"uploadAcmi.uploading\" class=\"form-control\"/>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"mission-type\">Theater</label>\n            <select id=\"theater\" ng-model=\"uploadAcmi.acmi.theater\" ng-options=\"theater.name as theater.name for theater in uploadAcmi.theaters\" class=\"form-control\"></select>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"form-group col-sm-6\">\n            <label for=\"tags\">Tags</label>\n            <tags-input id=\"tags\" ng-model=\"uploadAcmi.acmi.tags\" placeholder=\"Tags\" ng-disabled=\"uploadAcmi.uploading\" ng-required=\"true\">\n              <auto-complete source=\"uploadAcmi.loadTags($query)\" min-length=\"1\"></auto-complete>\n            </tags-input>\n          </div>\n          <div class=\"form-group col-sm-6\">\n            <label for=\"pilots\">Pilots</label>\n            <tags-input id=\"pilots\" ng-model=\"uploadAcmi.acmi.pilots\" placeholder=\"Pilots\" add-from-autocomplete-only=\"true\" ng-disabled=\"uploadAcmi.uploading\" ng-required=\"true\">\n              <auto-complete source=\"uploadAcmi.loadPilots($query)\" min-length=\"2\"></auto-complete>\n            </tags-input>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"video\">YouTube Video</label>\n            <input id=\"video\" type=\"text\" name=\"video\" ng-model=\"uploadAcmi.acmi.videoUrl\" ng-disabled=\"uploadAcmi.uploading\" ng-max-length=\"512\" ng-required=\"false\" class=\"form-control\"/>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div link-errors=\"link-errors\" class=\"form-group col-sm-12\">\n            <label for=\"details\">Details</label>\n            <textarea id=\"details\" name=\"details\" ng-model=\"uploadAcmi.acmi.details\" ng-disabled=\"uploadAcmi.uploading\" ng-maxlength=\"2048\" ng-required=\"true\" class=\"form-control\"></textarea>\n          </div>\n        </div>\n        <div class=\"row\">\n          <div class=\"col-sm-12\">\n            <button type=\"submit\" ng-click=\"uploadAcmi.uploadAcmi()\" ng-disabled=\"uploadAcmi.uploading || uploadForm.$invalid\" class=\"btn btn-success\">Upload</button>\n          </div>\n        </div>\n      </div>\n    </form>\n    <div ng-hide=\"!uploadAcmi.uploading\" class=\"well\">\n      <h5>Uploading ACMI...</h5>\n      <uib-progressbar animate=\"false\" value=\"uploadAcmi.uploadProgress\"></uib-progressbar>\n    </div>\n  </loading-panel>\n</div>");
 }]);
 

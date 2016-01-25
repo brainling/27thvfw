@@ -84,6 +84,23 @@ var store = new confidence.Store({
                 id: localConfig.enjinSiteId
             }
         }
+    },
+    auth: {
+        $filter: 'env',
+        production: {
+            cookie: {
+                secret: process.env.AUTH_SECRET,
+                sid: '27thvfw-auth-cookie',
+                secure: true
+            }
+        },
+        $default: {
+            cookie: {
+                secret: localConfig.authSecret,
+                sid: '27thvfw-auth-cookie-dev',
+                secure: false
+            }
+        }
     }
 });
 

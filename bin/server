@@ -3,6 +3,7 @@
 
 const cluster = require('cluster');
 const winston = require('winston');
+const winstonCluster = require('winston-cluster');
 const amqp = require('amqp');
 const config = require('../config').get('/logging');
 
@@ -24,12 +25,18 @@ if(cluster.isMaster) {
             winston.debug('Worker %s registered for %s', msg.id, msg.task);
             childTasks[msg.id] = msg.task;
         });
+        worker.on('error', err => {
+            winston.error('Worker failed with error: %s', err);
+            process.exit();
+        });
     };
 
     winston.info('Starting cluster coordinator (' + (process.env.NODE_ENV || 'dev') + ')');
     for(let task of tasks) {
         startWorker(task);
     }
+
+    winstonCluster.bindListeners();
 
     cluster.on('exit', (worker, code, signal) => {
         if(!worker.suicide) {
@@ -42,6 +49,7 @@ if(cluster.isMaster) {
     });
 }
 else {
+    winstonCluster.bindTransport();
     let task = process.env.task || 'www';
     try {
         cluster.worker.send({ id: cluster.worker.id, task: task }, () => {

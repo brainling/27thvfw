@@ -2,7 +2,7 @@ div
     h3 Filters
     form
         div.form-group
-            input#title.form-control(type='text' placeholder='Title' ng-model='vm.title'
+            input#title.form-control(type='text' placeholder='Title' ng-model='acmiFilter.title'
                 ng-change='acmiFilter.applyFilters()')
         div.form-group
             tags-input(ng-model='acmiFilter.tags' placeholder='Tags' on-tag-added='acmiFilter.applyFilters()'

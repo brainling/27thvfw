@@ -7,4 +7,16 @@ nav.navbar.navbar-inverse.navbar-fixed-top
         div#navbar.navbar-collapse.collapse
             ul.nav.navbar-nav
                 li
-                    a(ng-link='upload') Upload
+                    a(ng-link='upload' ng-hide='topnav.loading || !topnav.isLoggedIn') Upload
+            ul.nav.navbar-nav.navbar-right
+                li(ng-hide='topnav.isLoggedIn')
+                    a(ng-link='login')
+                        span(ng-hide='topnav.loading') Login
+                        span.glyphicon.glyphicon-refresh.glyphicon-spin(ng-hide='!topnav.loading')
+                li.dropdown(ng-hide='topnav.loading || !topnav.isLoggedIn')
+                    a.dropdown-toggle(data-toggle='dropdown' role='button'
+                        aria-haspopup='true' aria-expanded='false') {{ topnav.user.callsign }}
+                        span.caret
+                    ul.dropdown-menu
+                        li
+                            a(href='#' ng-click='topnav.logout()') Logout

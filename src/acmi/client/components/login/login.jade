@@ -1,0 +1,13 @@
+form.form-horizontal(name='loginForm')
+    div.form-group
+        label.col-sm-3.control-label(for='email') E-mail
+        div.col-sm-9
+            input.form-control(type='email' id='email' ng-model='login.email' ng-required='true')
+    div.form-group
+        label.col-sm-3.control-label(for='password') Password
+        div.col-sm-9
+            input.form-control(type='password' id='password' ng-model='login.password' ng-required='true')
+    div.form-group
+        div.col-sm-offset-3.col-sm-9
+            button.btn.btn-success(type='submit' ng-click='login.login()'
+                ng-disabled='loginForm.$invalid') Login

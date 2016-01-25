@@ -1,0 +1,17 @@
+{
+  "filter": "name",
+  "data": [
+    {
+      "name": "Admin",
+      "tags": [ "Staff", "Senior Staff" ]
+    },
+    {
+      "name": "Member",
+      "tags": [ "Staff", "Senior Staff", "524th" ]
+    },
+    {
+      "name": "Cadet",
+      "tags": [ "Staff", "Senior Staff", "524th", "308th Fighter Squadron" ]
+    }
+  ]
+}

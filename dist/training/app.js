@@ -50669,7 +50669,7 @@ angular.module('27th.common.directives.linkErrors', []).directive('linkErrors', 
 },{}],23:[function(require,module,exports){
 'use strict';
 
-angular.module('27th.acmi.directives.loadingPanel', []).directive('loadingPanel', function () {
+angular.module('27th.common.directives.loadingPanel', []).directive('loadingPanel', function () {
     return {
         restrict: 'E',
         transclude: true,
@@ -50723,17 +50723,112 @@ angular.module('27th.common.services.alert', []).service('alertService', (functi
 },{}],25:[function(require,module,exports){
 'use strict';
 
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module('27th.common.services.enjin', []).service('enjinService', (function () {
-    function _class() {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function authPost(url, params) {
+    var _this = this;
+
+    return this.postAsync(url, params).then(function (res) {
+        _this.credentials = res;
+        _this.$rootScope.$emit('auth.stateChanged', true);
+        return true;
+    }).catch(function (err) {
+        _this.credentials = null;
+        _this.$rootScope.$emit('auth.stateChanged', false);
+        throw err.data.message;
+    });
+}
+
+function authGet(url) {
+    var _this2 = this;
+
+    return this.getAsync(url).then(function (res) {
+        _this2.credentials = res;
+        _this2.$rootScope.$emit('auth.stateChanged', true);
+        return true;
+    }).catch(function (err) {
+        _this2.credentials = null;
+        _this2.$rootScope.$emit('auth.stateChanged', false);
+        throw err.data.message;
+    });
+}
+
+var base = require('./fetch-service-base');
+angular.module('27th.common.services.auth', []).service('authService', (function (_base) {
+    _inherits(_class, _base);
+
+    function _class($q, $http, $rootScope) {
         _classCallCheck(this, _class);
+
+        var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
+
+        _this3.$rootScope = $rootScope;
+        _this3.credentials = null;
+        _this3.started = false;
+        return _this3;
     }
 
-    return _class;
-})());
+    _createClass(_class, [{
+        key: 'login',
+        value: function login(email, password) {
+            return authPost.call(this, '/api/auth/login', {
+                email: email,
+                password: password
+            });
+        }
+    }, {
+        key: 'logout',
+        value: function logout() {
+            this.credentials = null;
+            this.$rootScope.$emit('auth.stateChanged', false);
+            return this.getAsync('/api/auth/logout');
+        }
+    }, {
+        key: 'start',
+        value: function start() {
+            var _this4 = this;
 
-},{}],26:[function(require,module,exports){
+            function doStart() {
+                if (!this.started) {
+                    this.started = true;
+                    this.$rootScope.$emit('auth.started');
+                }
+            }
+
+            this.check().then(function () {
+                doStart.call(_this4);
+            }).catch(function (err) {
+                doStart.call(_this4);
+                throw err;
+            });
+        }
+    }, {
+        key: 'check',
+        value: function check() {
+            return authGet.call(this, '/api/auth/check');
+        }
+    }, {
+        key: 'isAuthenticated',
+        value: function isAuthenticated() {
+            return this.credentials !== null;
+        }
+    }, {
+        key: 'getCredentials',
+        value: function getCredentials() {
+            return this.credentials;
+        }
+    }]);
+
+    return _class;
+})(base));
+
+},{"./fetch-service-base":26}],26:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -50922,18 +51017,18 @@ require('./directives/link-errors');
 require('./services/pilot-service');
 require('./services/theater-service');
 require('./services/alert-service');
-require('./services/enjin-service');
+require('./services/auth-service');
 
 module.exports = {
     FetchServiceBase: require('./services/fetch-service-base')
 };
 
-},{"./components/empty-sidebar":20,"./directives/alert-container":21,"./directives/link-errors":22,"./directives/loading-panel":23,"./services/alert-service":24,"./services/enjin-service":25,"./services/fetch-service-base":26,"./services/pilot-service":27,"./services/theater-service":28}],"templates-common":[function(require,module,exports){
+},{"./components/empty-sidebar":20,"./directives/alert-container":21,"./directives/link-errors":22,"./directives/loading-panel":23,"./services/alert-service":24,"./services/auth-service":25,"./services/fetch-service-base":26,"./services/pilot-service":27,"./services/theater-service":28}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
   $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
-  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"loading-spinner\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
+  $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"icon-spinner icon-spin\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
   $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
 }]);

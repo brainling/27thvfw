@@ -24,23 +24,25 @@ require('./components/acmi');
 require('./components/acmi-details');
 require('./components/upload-acmi');
 require('./components/acmi-filter');
-require('./components/empty-sidebar');
 require('./components/topnav');
+require('./components/login');
 
 angular.module('27th.acmi', [
     'ngNewRouter',
     '27th.common.templates',
     '27th.common.directives.alertContainer',
+    '27th.common.emptySidebar',
+    '27th.common.services.auth',
     '27th.acmi.templates',
     '27th.acmi.log',
     '27th.acmi.details',
     '27th.acmi.upload',
     '27th.acmi.filter',
-    '27th.acmi.emptySidebar',
-    '27th.acmi.topnav'
+    '27th.acmi.topnav',
+    '27th.acmi.login'
 ])
     .controller('AppController', class {
-        constructor($router) {
+        constructor($router, authService) {
             $router.config([
                 {
                     path: '/',
@@ -68,7 +70,18 @@ angular.module('27th.acmi', [
                         'default': 'uploadAcmi'
                     },
                     as: 'upload'
+                },
+                {
+                    path: '/login',
+                    components: {
+                        'topnav': 'topnav',
+                        'sidebar': 'emptySidebar',
+                        'default': 'login'
+                    },
+                    as: 'login'
                 }
             ]);
+
+            authService.start();
         }
     });

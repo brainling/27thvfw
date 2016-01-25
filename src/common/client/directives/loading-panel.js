@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('27th.acmi.directives.loadingPanel', [])
+angular.module('27th.common.directives.loadingPanel', [])
     .directive('loadingPanel', () => {
         return {
             restrict: 'E',
