@@ -38,7 +38,14 @@ angular.module('27th.acmi.services.acmi', [])
         }
 
         getPolicy() {
-            return this.getAsync('/api/acmi/policy');
+            return this.getAsync('/api/acmi/policy')
+                    .catch(err => {
+                        if(err.data && err.data.statusCode === 401) {
+                            return null;
+                        }
+
+                        throw err;
+                    });
         }
 
         count(params) {

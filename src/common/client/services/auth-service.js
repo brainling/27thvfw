@@ -31,9 +31,11 @@ function authGet(url) {
 const base = require('./fetch-service-base');
 angular.module('27th.common.services.auth', [])
     .service('authService', class extends base {
-        constructor($q, $http, $rootScope) {
+        constructor($q, $http, $rootScope, $location) {
             super($http, $q);
             this.$rootScope = $rootScope;
+            this.$location = $location;
+
             this.credentials = null;
             this.started = false;
         }
@@ -71,6 +73,22 @@ angular.module('27th.common.services.auth', [])
 
         check() {
             return authGet.call(this, '/api/auth/check');
+        }
+
+        require(group, done) {
+            if(!this.credentials || this.credentials.groups.length === 0 ||
+                    this.credentials.groups.indexOf(group) === -1) {
+                setTimeout(() => this.$location.path('/'), 5);
+            }
+            else {
+                done();
+            }
+        }
+
+        isAuthorized(group) {
+            return this.isAuthenticated() &&
+                    this.credentials.groups.length > 0 &&
+                    this.credentials.groups.indexOf(group) !== -1;
         }
 
         isAuthenticated() {

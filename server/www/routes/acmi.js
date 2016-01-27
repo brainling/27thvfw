@@ -123,6 +123,8 @@ module.exports = [
         },
         handler: (request, reply) => {
             request.payload.slug = slug(request.payload.title, { lower: true });
+            request.payload.uploadedBy = request.auth.credentials.pid;
+
             Acmi.create(request.payload)
                 .then(acmi => {
                     reply.publishTagUpdates(acmi.tags, () => {

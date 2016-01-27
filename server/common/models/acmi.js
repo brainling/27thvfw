@@ -19,10 +19,11 @@ let schema = Joi.object({
         bucket: Joi.string()
     }).meta({ _id: false })).required(),
     slug: Joi.string().required().meta({ index: true }),
-    uploadedAt: Joi.date().default(() => Date.now(), 'Defaults to the current time')
+    uploadedAt: Joi.date().default(() => Date.now(), 'Defaults to the current time'),
+    uploadedBy: Joi.string()
 });
 
 
 let model = mongoose.model('Acmi', Joigoose.convert(schema), 'acmis');
-model.validationSchema = _.omit(schema, 'slug');
+model.validationSchema = _.omit(schema, ['slug', 'uploadedBy', 'uploadedAt' ]);
 module.exports = model;

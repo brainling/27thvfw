@@ -50763,12 +50763,14 @@ var base = require('./fetch-service-base');
 angular.module('27th.common.services.auth', []).service('authService', (function (_base) {
     _inherits(_class, _base);
 
-    function _class($q, $http, $rootScope) {
+    function _class($q, $http, $rootScope, $location) {
         _classCallCheck(this, _class);
 
         var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class).call(this, $http, $q));
 
         _this3.$rootScope = $rootScope;
+        _this3.$location = $location;
+
         _this3.credentials = null;
         _this3.started = false;
         return _this3;
@@ -50812,6 +50814,24 @@ angular.module('27th.common.services.auth', []).service('authService', (function
         key: 'check',
         value: function check() {
             return authGet.call(this, '/api/auth/check');
+        }
+    }, {
+        key: 'require',
+        value: function require(group, done) {
+            var _this5 = this;
+
+            if (!this.credentials || this.credentials.groups.length === 0 || this.credentials.groups.indexOf(group) === -1) {
+                setTimeout(function () {
+                    return _this5.$location.path('/');
+                }, 5);
+            } else {
+                done();
+            }
+        }
+    }, {
+        key: 'isAuthorized',
+        value: function isAuthorized(group) {
+            return this.isAuthenticated() && this.credentials.groups.length > 0 && this.credentials.groups.indexOf(group) !== -1;
         }
     }, {
         key: 'isAuthenticated',

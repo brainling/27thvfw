@@ -7,6 +7,7 @@ angular.module('27th.acmi.upload', [
         'ngFileUpload',
         '27th.acmi.services.acmi',
         '27th.common.services.pilot',
+        '27th.common.services.auth',
         '27th.acmi.services.tag',
         '27th.common.services.theater',
         '27th.common.services.alert',
@@ -14,12 +15,14 @@ angular.module('27th.acmi.upload', [
         '27th.common.directives.loadingPanel'
     ])
     .controller('UploadAcmiController', class {
-        constructor($location, $q, acmiService, pilotService, tagService, theaterService, alertService, Upload) {
+        constructor($location, $q, acmiService, pilotService, tagService, theaterService, alertService,
+                    authService, Upload) {
             this.$location = $location;
             this.acmiService = acmiService;
             this.pilotService = pilotService;
             this.tagService = tagService;
             this.alertService = alertService;
+            this.authService = authService;
             this.upload = Upload;
 
             this.acmi = {
@@ -40,9 +43,9 @@ angular.module('27th.acmi.upload', [
             this.missionTypes = acmiService.getMissionTypes();
 
             $q.all([
-                theaterService.get(),
-                acmiService.getPolicy()
-            ])
+                    theaterService.get(),
+                    acmiService.getPolicy()
+                ])
                 .then(data => {
                     this.theaters = data[0];
                     this.policy = data[1];
@@ -112,5 +115,9 @@ angular.module('27th.acmi.upload', [
 
         loadTags(query) {
             return this.tagService.get(query);
+        }
+
+        canActivate() {
+            return this.authService.isAuthorized('Cadet');
         }
     });
