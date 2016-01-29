@@ -17,26 +17,28 @@ div.acmi-details
         div.panel-body
             div.container-fluid
                 div.row.summary-row
-                    div.col-sm-8
+                    div.col-sm-7
                         h5 Details
                         | {{ acmi.details | characters: 250 }}
-                    div.col-sm-4
+                    div.col-sm-5
                         h5 Pilots
                         | {{ acmi.pilots.join(', ') }}
                 div.row.detail-row-top
-                    div.col-sm-8
+                    div.col-sm-7
                         span.tag-header Theater
                         span.mission-details {{ acmi.theater }}
-                    div.col-sm-4
+                    div.col-sm-5
                         span.tag-header Mission Type
                         span.mission-details {{ acmi.missionType }}
                 div.row.detail-row
-                    div.col-sm-8
+                    div.col-sm-7
                         span.tag-header Tags
                         span.tag-list {{ acmi.tags.join(', ') }}
-                    div.col-sm-4
+                    div.col-sm-5
                         span.uploaded-header Uploaded
                         span.uploaded-date {{ acmi.uploadedAt | date: 'MMM d, y h:mm a' }}
+                        span.uploaded-by-header By
+                        span.uploaded-by {{ acmi.uploadedBy ? acmi.uploadedBy.callsign : 'Unknown' }}
 nav
     uib-pagination(ng-model='acmi.currentPage' total-items='acmi.totalAcmis' max-size=5 boundary-links='true'
         previous-text!='&lsaquo;' next-text!='&rsaquo;' first-text!='&laquo;' last-text!='&raquo;'

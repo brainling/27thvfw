@@ -10,7 +10,8 @@ const _ = require('lodash');
 
 function acmiQuery(request, count) {
     let query = Acmi.find()
-        .sort('-uploadedAt');
+        .sort('-uploadedAt')
+        .populate('uploadedBy');
 
     if (!count) {
         query = query.limit(request.query.pageSize)
@@ -83,6 +84,7 @@ module.exports = [
         },
         handler: (request, reply) => {
             Acmi.findOne({ _id: request.params.id })
+                .populate('uploadedBy')
                 .then(acmi => reply(acmi))
                 .catch(err => reply(Boom.badImplementation(err)));
         }
@@ -123,7 +125,7 @@ module.exports = [
         },
         handler: (request, reply) => {
             request.payload.slug = slug(request.payload.title, { lower: true });
-            request.payload.uploadedBy = request.auth.credentials.pid;
+            request.payload.uploadedBy = request.auth.credentials.poid;
 
             Acmi.create(request.payload)
                 .then(acmi => {

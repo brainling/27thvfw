@@ -148,6 +148,7 @@ module.exports = [
                     session.tags = tags;
                     session.pid = pilot.pilotId;
                     session.callsign = pilot.callsign;
+                    session.poid = pilot._id;
                     return loadGroups(tags);
                 })
                 .then(groups => {

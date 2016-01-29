@@ -86,9 +86,13 @@ angular.module('27th.common.services.auth', [])
         }
 
         isAuthorized(group) {
-            return this.isAuthenticated() &&
-                    this.credentials.groups.length > 0 &&
-                    this.credentials.groups.indexOf(group) !== -1;
+            return this.check()
+                .then(() => {
+                    return this.isAuthenticated() &&
+                        this.credentials.groups.length > 0 &&
+                        this.credentials.groups.indexOf(group) !== -1;
+                })
+                .catch(() => false);
         }
 
         isAuthenticated() {

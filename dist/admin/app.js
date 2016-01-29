@@ -50770,7 +50770,16 @@ angular.module('27th.common.services.alert', []).service('alertService', (functi
     }, {
         key: 'error',
         value: function error(msg) {
-            this.alerts.push({ type: 'error', message: msg });
+            var message = msg;
+            if (typeof msg !== 'string') {
+                if (msg.message) {
+                    message = msg.message;
+                } else if (msg.error && msg.error.message) {
+                    message = msg.error.message;
+                }
+            }
+
+            this.alerts.push({ type: 'error', message: message });
             this.$rootScope.$emit('alerts.new');
         }
     }, {
@@ -50886,7 +50895,7 @@ angular.module('27th.common.services.auth', []).service('authService', (function
             if (!this.credentials || this.credentials.groups.length === 0 || this.credentials.groups.indexOf(group) === -1) {
                 setTimeout(function () {
                     return _this5.$location.path('/');
-                }, 5);
+                }, 1);
             } else {
                 done();
             }
@@ -50894,7 +50903,13 @@ angular.module('27th.common.services.auth', []).service('authService', (function
     }, {
         key: 'isAuthorized',
         value: function isAuthorized(group) {
-            return this.isAuthenticated() && this.credentials.groups.length > 0 && this.credentials.groups.indexOf(group) !== -1;
+            var _this6 = this;
+
+            return this.check().then(function () {
+                return _this6.isAuthenticated() && _this6.credentials.groups.length > 0 && _this6.credentials.groups.indexOf(group) !== -1;
+            }).catch(function () {
+                return false;
+            });
         }
     }, {
         key: 'isAuthenticated',

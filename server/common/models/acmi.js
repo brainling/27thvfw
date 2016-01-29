@@ -20,7 +20,7 @@ let schema = Joi.object({
     }).meta({ _id: false })).required(),
     slug: Joi.string().required().meta({ index: true }),
     uploadedAt: Joi.date().default(() => Date.now(), 'Defaults to the current time'),
-    uploadedBy: Joi.string()
+    uploadedBy: Joi.string().meta({ type: 'ObjectId', ref: 'Pilot' })
 });
 
 

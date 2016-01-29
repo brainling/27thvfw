@@ -6241,7 +6241,18 @@ body {
   font-size: 11px;
   color: #317EAC; }
 
+.uploaded-by-header {
+  margin-right: 7px;
+  margin-left: 15px;
+  font-size: 11px;
+  color: #317EAC; }
+
 .uploaded-date {
+  font-size: 11px;
+  font-style: italic;
+  color: #555555; }
+
+.uploaded-by {
   font-size: 11px;
   font-style: italic;
   color: #555555; }

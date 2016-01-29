@@ -7,8 +7,11 @@ angular.module('27th.acmi.topnav', [
         constructor($rootScope, authService) {
             this.authService = authService;
             this.isLoggedIn = authService.isAuthenticated();
-            this.user = {};
-            this.loading = true;
+            this.user = authService.getCredentials();
+
+            if(!this.user) {
+                this.loading = true;
+            }
 
             $rootScope.$on('auth.stateChanged', (evt, state) => {
                 this.isLoggedIn = state;

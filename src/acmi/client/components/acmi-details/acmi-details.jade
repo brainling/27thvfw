@@ -19,6 +19,9 @@ loading-panel(loading='acmiDetails.loading')
                             tr
                                 td Uploaded
                                 td {{ acmiDetails.acmi.uploadedAt | date: 'MMM d, y h:mm a' }}
+                            tr
+                                td Uploaded By
+                                td {{ acmiDetails.acmi.uploadedBy ? acmiDetails.acmi.uploadedBy.callsign : 'Unknown' }}
             div.col-sm-6
                 div.panel.panel-default
                     div.panel-heading Pilots
