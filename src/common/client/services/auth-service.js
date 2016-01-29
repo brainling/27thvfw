@@ -78,7 +78,7 @@ angular.module('27th.common.services.auth', [])
         require(group, done) {
             if(!this.credentials || this.credentials.groups.length === 0 ||
                     this.credentials.groups.indexOf(group) === -1) {
-                setTimeout(() => this.$location.path('/'), 5);
+                setTimeout(() => this.$location.path('/'), 1);
             }
             else {
                 done();

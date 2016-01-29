@@ -13,7 +13,17 @@ angular.module('27th.common.services.alert', [])
         }
 
         error(msg) {
-            this.alerts.push({ type: 'error', message: msg });
+            let message = msg;
+            if(typeof msg !== 'string') {
+                if(msg.message) {
+                    message = msg.message;
+                }
+                else if(msg.error && msg.error.message) {
+                    message = msg.error.message;
+                }
+            }
+
+            this.alerts.push({ type: 'error', message: message });
             this.$rootScope.$emit('alerts.new');
         }
 

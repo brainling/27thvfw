@@ -10,14 +10,17 @@ mongoose.Promise = global.Promise; // Use ES6 promises
 
 winston.level = config.logging.debug ? 'debug' : 'info';
 
-if(!RegExp.escapeString) {
-    RegExp.escapeString =  function(str) {
+if (!RegExp.escapeString) {
+    RegExp.escapeString = function (str) {
         return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     };
 }
 
 class Server {
-    constructor(ready) {
+    constructor() {
+    }
+
+    start() {
         this.server = new hapi.Server({
             debug: {
                 request: ['error']
@@ -36,71 +39,61 @@ class Server {
             port: 5000
         });
 
-        this.server.register([
-            require('hapi-auth-cookie'),
-            require('inert'),
-            require('./plugins/queues')
-        ], err => {
-            if(err) {
-                throw err;
-            }
+        return this.server.register([
+                require('hapi-auth-cookie'),
+                require('inert'),
+                require('./plugins/queues')
+            ])
+            .then(() => {
+                const timeout = 3 * 24 * 60 * 60 * 1000; // 3 days
+                const cache = this.server.cache({
+                    cache: 'sessionCache',
+                    segment: 'sessions',
+                    expiresIn: timeout
+                });
+                this.server.app.cache = cache;
 
-            const timeout = 3 * 24 * 60 * 60 * 1000; // 3 days
-            const cache = this.server.cache({
-                cache: 'sessionCache',
-                segment: 'sessions',
-                expiresIn: timeout
+                this.server.auth.strategy('session', 'cookie', {
+                    password: config.auth.cookie.secret,
+                    cookie: config.auth.cookie.sid,
+                    isSecure: config.auth.cookie.secure,
+                    validateFunc: function (request, session, callback) {
+                        cache.get(session.sid, (err, cached) => {
+                            if (err) {
+                                return callback(err, false);
+                            }
+
+                            if (!cached) {
+                                return callback(null, false);
+                            }
+
+                            return callback(null, true, cached.account);
+                        });
+                    }
+                });
+
+                mongoose.connect(config.db.mongo.url);
+
+                this.server.route(require('./routes/auth'));
+                this.server.route(require('./routes/acmi'));
+                this.server.route(require('./routes/pilots'));
+                this.server.route(require('./routes/tags'));
+                this.server.route(require('./routes/theaters'));
+
+                let clients = require('./routes/client');
+                this.server.route(clients);
+
+                return this.server.start();
             });
-            this.server.app.cache = cache;
-
-            this.server.auth.strategy('session', 'cookie', {
-                password: config.auth.cookie.secret,
-                cookie: config.auth.cookie.sid,
-                isSecure: config.auth.cookie.secure,
-                validateFunc: function(request, session, callback) {
-                    cache.get(session.sid, (err, cached) => {
-                        if(err) {
-                            return callback(err, false);
-                        }
-
-                        if(!cached) {
-                            return callback(null, false);
-                        }
-
-                        return callback(null, true, cached.account);
-                    });
-                }
-            });
-
-            mongoose.connect(config.db.mongo.url);
-
-            this.server.route(require('./routes/auth'));
-            this.server.route(require('./routes/acmi'));
-            this.server.route(require('./routes/pilots'));
-            this.server.route(require('./routes/tags'));
-            this.server.route(require('./routes/theaters'));
-
-            let clients = require('./routes/client');
-            this.server.route(clients);
-
-            ready();
-        });
-    }
-
-    start() {
-        this.server.start(() => {
-            winston.info('Web server started (' + (process.env.NODE_ENV || 'dev') + ')');
-        });
     }
 }
 
-module.exports = function() {
-    try {
-        const server = new Server(() => {
-            server.start();
+module.exports = function () {
+    const server = new Server();
+    server.start()
+        .then(() => winston.info('Web server started (' + (process.env.NODE_ENV || 'dev') + ')'))
+        .catch(err => {
+            winston.error(err);
+            process.exit();
         });
-    }
-    catch(e) {
-        winston.error(e);
-    }
 };
