@@ -42,7 +42,7 @@ angular.module('27th.acmi', [
     '27th.acmi.login'
 ])
     .controller('AppController', class {
-        constructor($router, authService) {
+        constructor($router) {
             $router.config([
                 {
                     path: '/',
@@ -81,7 +81,5 @@ angular.module('27th.acmi', [
                     as: 'login'
                 }
             ]);
-
-            authService.start();
         }
     });

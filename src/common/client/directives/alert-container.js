@@ -10,13 +10,12 @@ angular.module('27th.common.directives.alertContainer', [
             controllerAs: 'vm',
             controller: class {
                 constructor($rootScope, alertService) {
-                    let self = this;
                     this.alertService = alertService;
                     this.alert = null;
 
                     $rootScope.$on('alerts.new', () => {
-                        if(!self.alert) {
-                            self.alert = alertService.nextAlert();
+                        if(!this.alert) {
+                            this.alert = alertService.nextAlert();
                         }
                     });
                 }

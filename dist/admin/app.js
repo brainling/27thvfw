@@ -50687,15 +50687,16 @@ angular.module('27th.common.directives.alertContainer', ['27th.common.services.a
         controllerAs: 'vm',
         controller: (function () {
             function controller($rootScope, alertService) {
+                var _this = this;
+
                 _classCallCheck(this, controller);
 
-                var self = this;
                 this.alertService = alertService;
                 this.alert = null;
 
                 $rootScope.$on('alerts.new', function () {
-                    if (!self.alert) {
-                        self.alert = alertService.nextAlert();
+                    if (!_this.alert) {
+                        _this.alert = alertService.nextAlert();
                     }
                 });
             }
@@ -50753,6 +50754,51 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+angular.module('27th.common.directives.loginForm', ['27th.common.services.auth', '27th.common.services.alert']).directive('loginForm', function () {
+    return {
+        restrict: 'E',
+        templateUrl: './directives/login-form.html',
+        scope: {
+            redirect: '=?'
+        },
+        controllerAs: 'vm',
+        controller: (function () {
+            function controller($location, authService, alertService) {
+                _classCallCheck(this, controller);
+
+                this.$location = $location;
+                this.authService = authService;
+                this.alertService = alertService;
+
+                this.email = '';
+                this.password = '';
+            }
+
+            _createClass(controller, [{
+                key: 'login',
+                value: function login() {
+                    var _this = this;
+
+                    this.authService.login(this.email, this.password).then(function () {
+                        return _this.$location.path(_this.redirect || '/');
+                    }).catch(function (err) {
+                        return _this.alertService.error(err);
+                    });
+                }
+            }]);
+
+            return controller;
+        })()
+    };
+});
+
+},{}],28:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 angular.module('27th.common.services.alert', []).service('alertService', (function () {
     function _class($rootScope) {
         _classCallCheck(this, _class);
@@ -50792,7 +50838,7 @@ angular.module('27th.common.services.alert', []).service('alertService', (functi
     return _class;
 })());
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -50842,9 +50888,7 @@ angular.module('27th.common.services.auth', []).service('authService', (function
 
         _this3.$rootScope = $rootScope;
         _this3.$location = $location;
-
         _this3.credentials = null;
-        _this3.started = false;
         return _this3;
     }
 
@@ -50864,49 +50908,17 @@ angular.module('27th.common.services.auth', []).service('authService', (function
             return this.getAsync('/api/auth/logout');
         }
     }, {
-        key: 'start',
-        value: function start() {
-            var _this4 = this;
-
-            function doStart() {
-                if (!this.started) {
-                    this.started = true;
-                    this.$rootScope.$emit('auth.started');
-                }
-            }
-
-            this.check().then(function () {
-                doStart.call(_this4);
-            }).catch(function (err) {
-                doStart.call(_this4);
-                throw err;
-            });
-        }
-    }, {
         key: 'check',
         value: function check() {
             return authGet.call(this, '/api/auth/check');
         }
     }, {
-        key: 'require',
-        value: function require(group, done) {
-            var _this5 = this;
-
-            if (!this.credentials || this.credentials.groups.length === 0 || this.credentials.groups.indexOf(group) === -1) {
-                setTimeout(function () {
-                    return _this5.$location.path('/');
-                }, 1);
-            } else {
-                done();
-            }
-        }
-    }, {
         key: 'isAuthorized',
         value: function isAuthorized(group) {
-            var _this6 = this;
+            var _this4 = this;
 
             return this.check().then(function () {
-                return _this6.isAuthenticated() && _this6.credentials.groups.length > 0 && _this6.credentials.groups.indexOf(group) !== -1;
+                return _this4.isAuthenticated() && _this4.credentials.groups.length > 0 && _this4.credentials.groups.indexOf(group) !== -1;
             }).catch(function () {
                 return false;
             });
@@ -50926,7 +50938,7 @@ angular.module('27th.common.services.auth', []).service('authService', (function
     return _class;
 })(base));
 
-},{"./fetch-service-base":29}],29:[function(require,module,exports){
+},{"./fetch-service-base":30}],30:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -50974,7 +50986,7 @@ module.exports = (function () {
     return _class;
 })();
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -51008,7 +51020,7 @@ angular.module('27th.common.services.pilot', []).service('pilotService', (functi
     return _class;
 })(base));
 
-},{"./fetch-service-base":29}],31:[function(require,module,exports){
+},{"./fetch-service-base":30}],32:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -51039,7 +51051,7 @@ angular.module('27th.common.services.theater', []).service('theaterService', (fu
     return _class;
 })(base));
 
-},{"./fetch-service-base":29}],"common":[function(require,module,exports){
+},{"./fetch-service-base":30}],"common":[function(require,module,exports){
 'use strict';
 
 require('./components/empty-sidebar');
@@ -51047,6 +51059,7 @@ require('./components/empty-sidebar');
 require('./directives/alert-container');
 require('./directives/loading-panel');
 require('./directives/link-errors');
+require('./directives/login-form');
 
 require('./services/pilot-service');
 require('./services/theater-service');
@@ -51057,12 +51070,13 @@ module.exports = {
     FetchServiceBase: require('./services/fetch-service-base')
 };
 
-},{"./components/empty-sidebar":23,"./directives/alert-container":24,"./directives/link-errors":25,"./directives/loading-panel":26,"./services/alert-service":27,"./services/auth-service":28,"./services/fetch-service-base":29,"./services/pilot-service":30,"./services/theater-service":31}],"templates-common":[function(require,module,exports){
+},{"./components/empty-sidebar":23,"./directives/alert-container":24,"./directives/link-errors":25,"./directives/loading-panel":26,"./directives/login-form":27,"./services/alert-service":28,"./services/auth-service":29,"./services/fetch-service-base":30,"./services/pilot-service":31,"./services/theater-service":32}],"templates-common":[function(require,module,exports){
 "use strict";
 
 angular.module("27th.common.templates", []).run(["$templateCache", function ($templateCache) {
   $templateCache.put("./directives/alert-container.html", "\n<div role=\"alert\" ng-class=\"{ &quot;alert-danger&quot;: vm.alert &amp;&amp; vm.alert.type == &quot;error&quot; }\" ng-hide=\"!vm.alert\" class=\"alert alert-success\">\n  <button type=\"button\" class=\"close\"><span aria-hidden=\"aria-hidden\" ng-click=\"vm.dismissAlert()\">&times</span></button>{{ vm.alert.message }}\n</div>");
   $templateCache.put("./directives/loading-panel.html", "\n<div class=\"loading-panel\">\n  <div ng-class=\"{ collapsed: !vm.loading }\" class=\"icon-spinner icon-spin\"></div>\n  <div ng-class=\"{ hidden: loading }\" ng-transclude=\"ng-transclude\"></div>\n</div>");
+  $templateCache.put("./directives/login-form.html", "\n<form name=\"loginForm\" class=\"form-horizontal\">\n  <div class=\"form-group\">\n    <label for=\"email\" class=\"col-sm-3 control-label\">E-mail</label>\n    <div class=\"col-sm-9\">\n      <input type=\"email\" id=\"email\" ng-model=\"vm.email\" ng-required=\"true\" class=\"form-control\"/>\n    </div>\n  </div>\n  <div class=\"form-group\">\n    <label for=\"password\" class=\"col-sm-3 control-label\">Password</label>\n    <div class=\"col-sm-9\">\n      <input type=\"password\" id=\"password\" ng-model=\"vm.password\" ng-required=\"true\" class=\"form-control\"/>\n    </div>\n  </div>\n  <div class=\"form-group\">\n    <div class=\"col-sm-offset-3 col-sm-9\">\n      <button type=\"submit\" ng-click=\"vm.login()\" ng-disabled=\"vm.$invalid\" class=\"btn btn-success\">Login</button>\n    </div>\n  </div>\n</form>");
   $templateCache.put("./components/empty-sidebar/empty-sidebar.html", "");
   $templateCache.put("./components/topnav/topnav.html", "\n<nav class=\"navbar navbar-inverse navbar-fixed-top\">\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\" class=\"navbar-toggle collapsed\"></button><a ng-link=\"log\" class=\"navbar-brand\">ACMI Log</a>\n    </div>\n    <div id=\"navbar\" class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li><a ng-link=\"upload\">Upload</a></li>\n      </ul>\n    </div>\n  </div>\n</nav>");
 }]);

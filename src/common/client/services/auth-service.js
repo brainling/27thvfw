@@ -33,11 +33,10 @@ angular.module('27th.common.services.auth', [])
     .service('authService', class extends base {
         constructor($q, $http, $rootScope, $location) {
             super($http, $q);
+
             this.$rootScope = $rootScope;
             this.$location = $location;
-
             this.credentials = null;
-            this.started = false;
         }
 
         login(email, password) {
@@ -53,36 +52,8 @@ angular.module('27th.common.services.auth', [])
             return this.getAsync('/api/auth/logout');
         }
 
-        start() {
-            function doStart() {
-                if(!this.started) {
-                    this.started = true;
-                    this.$rootScope.$emit('auth.started');
-                }
-            }
-
-            this.check()
-                .then(() => {
-                    doStart.call(this);
-                })
-                .catch(err => {
-                    doStart.call(this);
-                    throw err;
-                });
-        }
-
         check() {
             return authGet.call(this, '/api/auth/check');
-        }
-
-        require(group, done) {
-            if(!this.credentials || this.credentials.groups.length === 0 ||
-                    this.credentials.groups.indexOf(group) === -1) {
-                setTimeout(() => this.$location.path('/'), 1);
-            }
-            else {
-                done();
-            }
         }
 
         isAuthorized(group) {
